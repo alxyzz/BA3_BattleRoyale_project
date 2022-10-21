@@ -82,6 +82,8 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void Start()
     {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
         if (isLocalPlayer)
         {
             _firstPerson.gameObject.SetActive(true);
@@ -89,6 +91,7 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.SetParent(_firstPerson);
             Camera.main.transform.localPosition = Vector3.zero;
             Camera.main.transform.localRotation = Quaternion.identity;
+
         }
         else
         {
