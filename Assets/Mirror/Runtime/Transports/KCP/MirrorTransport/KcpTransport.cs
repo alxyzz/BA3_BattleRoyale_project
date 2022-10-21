@@ -68,6 +68,21 @@ namespace kcp2k
         static KcpChannel ToKcpChannel(int channel) =>
             channel == Channels.Reliable ? KcpChannel.Reliable : KcpChannel.Unreliable;
 
+        TransportError ToTransportError(ErrorCode error)
+        {
+            switch(error)
+            {
+                case ErrorCode.DnsResolve: return TransportError.DnsResolve;
+                case ErrorCode.Timeout: return TransportError.Timeout;
+                case ErrorCode.Congestion: return TransportError.Congestion;
+                case ErrorCode.InvalidReceive: return TransportError.InvalidReceive;
+                case ErrorCode.InvalidSend: return TransportError.InvalidSend;
+                case ErrorCode.ConnectionClosed: return TransportError.ConnectionClosed;
+                case ErrorCode.Unexpected: return TransportError.Unexpected;
+                default: throw new InvalidCastException($"KCP: missing error translation for {error}");
+            }
+        }
+
         void Awake()
         {
             // logging
@@ -91,12 +106,12 @@ namespace kcp2k
                       () => OnClientConnected.Invoke(),
                       (message, channel) => OnClientDataReceived.Invoke(message, FromKcpChannel(channel)),
                       () => OnClientDisconnected.Invoke(),
-                      (error, reason) => OnClientError.Invoke(new Exception(reason)))
+                      (error, reason) => OnClientError.Invoke(ToTransportError(error), reason))
                 : new KcpClient(
                       () => OnClientConnected.Invoke(),
                       (message, channel) => OnClientDataReceived.Invoke(message, FromKcpChannel(channel)),
                       () => OnClientDisconnected.Invoke(),
-                      (error, reason) => OnClientError.Invoke(new Exception(reason)));
+                      (error, reason) => OnClientError.Invoke(ToTransportError(error), reason));
 
             // server
             server = NonAlloc
@@ -104,7 +119,7 @@ namespace kcp2k
                       (connectionId) => OnServerConnected.Invoke(connectionId),
                       (connectionId, message, channel) => OnServerDataReceived.Invoke(connectionId, message, FromKcpChannel(channel)),
                       (connectionId) => OnServerDisconnected.Invoke(connectionId),
-                      (connectionId, error, reason) => OnServerError.Invoke(connectionId, new Exception(reason)),
+                      (connectionId, error, reason) => OnServerError.Invoke(connectionId, ToTransportError(error), reason),
                       DualMode,
                       NoDelay,
                       Interval,
@@ -119,7 +134,7 @@ namespace kcp2k
                       (connectionId) => OnServerConnected.Invoke(connectionId),
                       (connectionId, message, channel) => OnServerDataReceived.Invoke(connectionId, message, FromKcpChannel(channel)),
                       (connectionId) => OnServerDisconnected.Invoke(connectionId),
-                      (connectionId, error, reason) => OnServerError.Invoke(connectionId, new Exception(reason)),
+                      (connectionId, error, reason) => OnServerError.Invoke(connectionId, ToTransportError(error), reason),
                       DualMode,
                       NoDelay,
                       Interval,

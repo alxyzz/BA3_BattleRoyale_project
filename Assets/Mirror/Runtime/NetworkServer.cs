@@ -22,7 +22,7 @@ namespace Mirror
         public static Dictionary<int, NetworkConnectionToClient> connections =
             new Dictionary<int, NetworkConnectionToClient>();
 
-        /// <summary>Message Handlers dictionary, with mesageId as key</summary>
+        /// <summary>Message Handlers dictionary, with messageId as key</summary>
         internal static Dictionary<ushort, NetworkMessageDelegate> handlers =
             new Dictionary<ushort, NetworkMessageDelegate>();
 
@@ -52,7 +52,7 @@ namespace Mirror
         // => public so that custom NetworkManagers can hook into it
         public static Action<NetworkConnectionToClient> OnConnectedEvent;
         public static Action<NetworkConnectionToClient> OnDisconnectedEvent;
-        public static Action<NetworkConnectionToClient, Exception> OnErrorEvent;
+        public static Action<NetworkConnectionToClient, TransportError, string> OnErrorEvent;
 
         // initialization / shutdown ///////////////////////////////////////////
         static void Initialize()
@@ -591,14 +591,14 @@ namespace Mirror
         }
 
         // transport errors are forwarded to high level
-        static void OnTransportError(int connectionId, Exception exception)
+        static void OnTransportError(int connectionId, TransportError error, string reason)
         {
             // transport errors will happen. logging a warning is enough.
             // make sure the user does not panic.
-            Debug.LogWarning($"Server Transport Error for connId={connectionId}: {exception}. This is fine.");
+            Debug.LogWarning($"Server Transport Error for connId={connectionId}: {error}: {reason}. This is fine.");
             // try get connection. passes null otherwise.
             connections.TryGetValue(connectionId, out NetworkConnectionToClient conn);
-            OnErrorEvent?.Invoke(conn, exception);
+            OnErrorEvent?.Invoke(conn, error, reason);
         }
 
         // message handlers ////////////////////////////////////////////////////
@@ -679,7 +679,7 @@ namespace Mirror
             // we are iterating here.
             //   see also: https://github.com/vis2k/Mirror/issues/2357
             // this whole process should be simplified some day.
-            // until then, let's copy .Values to avoid InvalidOperatinException.
+            // until then, let's copy .Values to avoid InvalidOperationException.
             // note that this is only called when stopping the server, so the
             // copy is no performance problem.
             foreach (NetworkConnectionToClient conn in connections.Values.ToList())
@@ -1066,6 +1066,13 @@ namespace Mirror
                 return;
             }
 
+            // Spawn should only be called once per netId
+            if (spawned.ContainsKey(identity.netId))
+            {
+                Debug.LogWarning($"{identity} with netId={identity.netId} was already spawned.");
+                return;
+            }
+
             identity.connectionToClient = (NetworkConnectionToClient)ownerConnection;
 
             // special case to make sure hasAuthority is set
@@ -1133,6 +1140,7 @@ namespace Mirror
             SpawnObject(obj, ownerConnection);
         }
 
+        // TODO merge with ConsiderForSpawning on client
         internal static bool ValidateSceneObject(NetworkIdentity identity)
         {
             if (identity.gameObject.hideFlags == HideFlags.NotEditable ||
@@ -1140,6 +1148,8 @@ namespace Mirror
                 return false;
 
 #if UNITY_EDITOR
+            // this never seems to trigger.
+            // even if a prefab is dragged into the scene.
             if (UnityEditor.EditorUtility.IsPersistent(identity.gameObject))
                 return false;
 #endif
@@ -1295,7 +1305,7 @@ namespace Mirror
             // fixes https://github.com/vis2k/Mirror/issues/2737
             // -> cleaning those up in NetworkConnection.Disconnect is NOT enough
             //    because voluntary disconnects from the other end don't call
-            //    NetworkConnectionn.Disconnect()
+            //    NetworkConnection.Disconnect()
             conn.RemoveFromObservingsObservers();
             conn.identity = null;
         }
@@ -1489,7 +1499,7 @@ namespace Mirror
                 {
                     // removed observer
                     conn.RemoveFromObserving(identity, false);
-                    // Debug.Log($"Removed Observer for {gameObjec} {conn}");
+                    // Debug.Log($"Removed Observer for {gameObject} {conn}");
                     changed = true;
                 }
             }

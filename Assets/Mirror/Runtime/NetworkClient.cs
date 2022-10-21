@@ -71,7 +71,7 @@ namespace Mirror
         // => public so that custom NetworkManagers can hook into it
         public static Action OnConnectedEvent;
         public static Action OnDisconnectedEvent;
-        public static Action<Exception> OnErrorEvent;
+        public static Action<TransportError, string> OnErrorEvent;
 
         /// <summary>Registered spawnable prefabs by assetId.</summary>
         public static readonly Dictionary<Guid, GameObject> prefabs =
@@ -433,12 +433,12 @@ namespace Mirror
         }
 
         // transport errors are forwarded to high level
-        static void OnTransportError(Exception exception)
+        static void OnTransportError(TransportError error, string reason)
         {
             // transport errors will happen. logging a warning is enough.
             // make sure the user does not panic.
-            Debug.LogWarning($"Client Transport Error: {exception}. This is fine.");
-            OnErrorEvent?.Invoke(exception);
+            Debug.LogWarning($"Client Transport Error: {error}: {reason}. This is fine.");
+            OnErrorEvent?.Invoke(error, reason);
         }
 
         // send ////////////////////////////////////////////////////////////////
@@ -1145,9 +1145,14 @@ namespace Mirror
         }
 
         // Checks if identity is not spawned yet, not hidden and has sceneId
+        // TODO merge with ValidateSceneObject on server
         static bool ConsiderForSpawning(NetworkIdentity identity)
         {
             // not spawned yet, not hidden, etc.?
+
+            // need to ensure it's not active yet because
+            // PrepareToSpawnSceneObjects may be called multiple times in case
+            // the ObjectSpawnStarted message is received multiple times.
             return !identity.gameObject.activeSelf &&
                    identity.gameObject.hideFlags != HideFlags.NotEditable &&
                    identity.gameObject.hideFlags != HideFlags.HideAndDontSave &&
