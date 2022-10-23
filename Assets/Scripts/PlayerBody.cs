@@ -9,6 +9,18 @@ public class PlayerBody : MonoBehaviour
 
     public GameObject CameraMountPoint; //to allow switching cameras after respawning without creating new ones - we will reuse the same camera, mounted to an empty game object point on the player entity
     // Start is called before the first frame update
+
+
+    public Weapon w_melee;
+    public Weapon w_short;
+    public Weapon w_medium;
+    public Weapon w_long;
+
+
+
+
+
+
     void Start()
     {
         
