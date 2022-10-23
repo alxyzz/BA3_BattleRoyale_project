@@ -24,18 +24,23 @@ public class WeaponSpawnPoint : MonoBehaviour
         if (spawnedWeaponPrefab != null)
         {
             SpawnWeapon(spawnedWeaponPrefab);
+            
         }
         else
         {
             switch (spawnedItem)
             {
                 case spawning_type.shortrange:
+                    SpawnWeapon(WeaponLists.Instance.w_short[Random.Range(0, WeaponLists.Instance.w_melee.Count - 1)]);
                     break;
                 case spawning_type.mediumrange:
+                    SpawnWeapon(WeaponLists.Instance.w_medium[Random.Range(0, WeaponLists.Instance.w_melee.Count - 1)]);
                     break;
                 case spawning_type.longrange:
+                    SpawnWeapon(WeaponLists.Instance.w_long[Random.Range(0, WeaponLists.Instance.w_melee.Count - 1)]);
                     break;
                 case spawning_type.melee:
+                    SpawnWeapon(WeaponLists.Instance.w_melee[Random.Range(0, WeaponLists.Instance.w_melee.Count-1)]);
                     break;
                 default:
                     break;
@@ -43,7 +48,7 @@ public class WeaponSpawnPoint : MonoBehaviour
         }
     }
 
-    void SpawnWeapon(Weapon b = null)
+    void SpawnWeapon(Weapon b)
     {
 
     }

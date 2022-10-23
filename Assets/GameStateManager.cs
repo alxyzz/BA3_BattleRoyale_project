@@ -3,17 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using System;
-///singleton class to keep certain stuff in memory for the sake of our game, like score or the global player list. this should only operate on the host pc
+///singleton class to keep certain stuff in memory for the sake of our game, like score or the global player list. 
 public class GameStateManager : MonoBehaviour
 {
 
     List<Tuple<PlayerData, string>> players = new List<Tuple<PlayerData, string>>(); // just to keep a reference of the player data linked to the player ip
     GameObject localPlayer;
     int roundNumber;
+    public PlayerData player;
     // Start is called before the first frame update
     void Start()
     {
-        GameObject localPlayer = NetworkClient.localPlayer.gameObject;
+
+        player = new PlayerData(); //initializes local player mind
+        
         if (NetworkServer.active)
         {
 
@@ -36,25 +39,20 @@ public class GameStateManager : MonoBehaviour
 
 
 
-    private static GameStateManager instance = null;
-    private static readonly object padlock = new object();
+    public static GameStateManager Instance;
 
-    GameStateManager()
+    private void Awake()
     {
-    }
-
-    public static GameStateManager Instance
-    {
-        get
+        // First time run
+        if (Instance == null)
         {
-            lock (padlock)
-            {
-                if (instance == null)
-                {
-                    instance = new GameStateManager();
-                }
-                return instance;
-            }
+            DontDestroyOnLoad(gameObject);
+            Instance = this;
         }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
+
     }
 }
