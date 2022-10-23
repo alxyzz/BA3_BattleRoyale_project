@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Collections;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/guides/networkbehaviour
@@ -67,13 +68,19 @@ public class LocalPlayerController : NetworkBehaviour
 
     #endregion
 
-    [SerializeField] private Transform _thirdPerson;
-    [SerializeField] private Transform _firstPerson;
-    [SerializeField] private Transform _gunRoot;
+    [Header("Components")]
+    [SerializeField] private Transform _thirdPersonRoot;
+    [SerializeField] private Transform _firstPersonRoot;
+    //[SerializeField] private Transform _firstPersonArm;
+    private CharacterMovement _charaMovement;
+
+    [Header("Settings")]
+    [SerializeField] private float _mouseSensitivity = 2.0f;
+
+    // [SerializeField] private Transform _gunRoot;
     public float Pitch { get; private set; }
     public float Yaw { get; private set; }
 
-    private CharacterMovement _charaMovement;
     private void Awake()
     {
         // if (!isLocalPlayer) Destroy(this);
@@ -86,48 +93,88 @@ public class LocalPlayerController : NetworkBehaviour
         Cursor.visible = false;
         if (isLocalPlayer)
         {
-            _firstPerson.gameObject.SetActive(true);
-            _thirdPerson.gameObject.SetActive(false);
-            Camera.main.transform.SetParent(_firstPerson);
+            _firstPersonRoot.gameObject.SetActive(true);
+            _thirdPersonRoot.gameObject.SetActive(false);
+            Camera.main.transform.SetParent(_firstPersonRoot);
             Camera.main.transform.localPosition = Vector3.zero;
             Camera.main.transform.localRotation = Quaternion.identity;
+
+            //_firstPersonArm.SetParent(Camera.main.transform);
+            // _firstPersonArm.transform.localPosition = Vector3.forward;
 
         }
         else
         {
-            _firstPerson.gameObject.SetActive(false);
-            _thirdPerson.gameObject.SetActive(true);
+            _firstPersonRoot.gameObject.SetActive(false);
+            _thirdPersonRoot.gameObject.SetActive(true);
             Destroy(this);
         }
     }
     private void Update()
     {
-        //if (!isLocalPlayer)
-        //{
-        //    Debug.Log("Not Local Player");
-        //    Destroy(this);
-        //    return;
-        //}
-
-        UpdateRotation();
-        UpdateMovement();
-
+        UpdateRotationInput();
+        UpdateMovementInput();
+        UpdateCrouchingInput();
+        UpdateWalkingInput();
     }
 
-    private void UpdateRotation()
+    private void UpdateRotationInput()
     {
-        Yaw += Input.GetAxis("Mouse X");
-        Pitch += Input.GetAxis("Mouse Y");
+        Yaw += Input.GetAxis("Mouse X") * _mouseSensitivity;
+        Pitch += Input.GetAxis("Mouse Y") * _mouseSensitivity;
         Pitch = Mathf.Clamp(Pitch, -90, 90);
 
-        _firstPerson.localRotation = Quaternion.Euler(Pitch, 0, 0);
-        _gunRoot.localRotation = Quaternion.Euler(Pitch, 0, 0);
+        _firstPersonRoot.localRotation = Quaternion.Euler(Pitch, 0, 0);
         transform.rotation = Quaternion.Euler(0, Yaw, 0);
     }
 
-    private void UpdateMovement()
+    private void UpdateMovementInput()
     {
         Vector3 input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        _charaMovement.AddMovement(transform.rotation * input);
+        _charaMovement.AddMovementInput(transform.rotation * input);
+    }
+
+    #region Crouch
+    private Coroutine _crouchCoroutine;
+    private readonly Vector3 _standLocalPosition = new Vector3(0.0f, 1.7f, 0.0f);
+    private readonly Vector3 _crouchLocalPosition = new Vector3(0.0f, 1.0f, 0.0f);
+    private readonly float _crouchSpeed = 5.0f;
+    private float _crouchValue = 0.0f;
+    private void UpdateCrouchingInput()
+    {
+        if (Input.GetButtonDown("Crouch"))
+        {
+            _charaMovement.IsCrouching = true;
+            if (null != _crouchCoroutine) StopCoroutine(_crouchCoroutine);
+            _crouchCoroutine = StartCoroutine(UpdateCrouch(1));
+        }
+        else if (Input.GetButtonUp("Crouch"))
+        {
+            _charaMovement.IsCrouching = false;
+            if (null != _crouchCoroutine) StopCoroutine(_crouchCoroutine);
+            _crouchCoroutine = StartCoroutine(UpdateCrouch(-1));
+        }
+    }
+    IEnumerator UpdateCrouch(float crouch)
+    {
+        while ((crouch > 0 && _crouchValue < 1) || (crouch < 0 && _crouchValue > 0))
+        {
+            _crouchValue = Mathf.Clamp01(_crouchValue + crouch * _crouchSpeed * Time.deltaTime);
+            _firstPersonRoot.localPosition = Vector3.Lerp(_standLocalPosition, _crouchLocalPosition, _crouchValue);
+            yield return null;
+        }
+    }
+    #endregion
+
+    private void UpdateWalkingInput()
+    {
+        if (Input.GetButtonDown("Walk"))
+        {
+            _charaMovement.IsWalking = true;
+        }
+        else if (Input.GetButtonUp("Walk"))
+        {
+            _charaMovement.IsWalking = false;
+        }
     }
 }
