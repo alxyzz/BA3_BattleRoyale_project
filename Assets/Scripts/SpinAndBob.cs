@@ -1,0 +1,88 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class SpinAndBob : MonoBehaviour
+{
+    public bool active;
+    //2 movements - spin and bob
+
+
+    public float bobStrength;
+    [Header("Spinning")]
+
+    //Rotational Speed
+    public float speed = 0f;
+
+    //Forward Direction
+    public bool ForwardX = false;
+    public bool ForwardY = false;
+    public bool ForwardZ = false;
+
+    //Reverse Direction
+    public bool ReverseX = false;
+    public bool ReverseY = false;
+    public bool ReverseZ = false;
+
+    [Header("Bobbing")]
+    Vector2 floatY;
+    float originalY;
+
+    void Start()
+    {
+        this.originalY = this.transform.position.y;
+    }
+
+    void Update()
+    {
+        if (!active)
+        {
+            return;
+        }
+        Spin();
+        Bob();
+
+        
+
+    }
+
+    private void Spin()
+    {
+        //Forward Direction
+        if (ForwardX == true)
+        {
+            transform.Rotate(Time.deltaTime * speed, 0, 0, Space.Self);
+        }
+        if (ForwardY == true)
+        {
+            transform.Rotate(0, Time.deltaTime * speed, 0, Space.Self);
+        }
+        if (ForwardZ == true)
+        {
+            transform.Rotate(0, 0, Time.deltaTime * speed, Space.Self);
+        }
+        //Reverse Direction
+        if (ReverseX == true)
+        {
+            transform.Rotate(-Time.deltaTime * speed, 0, 0, Space.Self);
+        }
+        if (ReverseY == true)
+        {
+            transform.Rotate(0, -Time.deltaTime * speed, 0, Space.Self);
+        }
+        if (ReverseZ == true)
+        {
+            transform.Rotate(0, 0, -Time.deltaTime * speed, Space.Self);
+        }
+
+    }
+
+    private void Bob()
+    {
+        //bob
+        floatY = transform.position;
+        floatY.y = originalY + (Mathf.Sin(Time.time) * bobStrength);
+        transform.position = floatY;
+    }
+
+}
