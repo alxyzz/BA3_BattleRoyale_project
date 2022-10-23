@@ -27,7 +27,19 @@ public class WeaponSpawnPoint : MonoBehaviour
         }
         else
         {
-
+            switch (spawnedItem)
+            {
+                case spawning_type.shortrange:
+                    break;
+                case spawning_type.mediumrange:
+                    break;
+                case spawning_type.longrange:
+                    break;
+                case spawning_type.melee:
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
