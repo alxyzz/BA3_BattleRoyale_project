@@ -67,13 +67,19 @@ public class LocalPlayerController : NetworkBehaviour
 
     #endregion
 
-    [SerializeField] private Transform _thirdPerson;
-    [SerializeField] private Transform _firstPerson;
-    [SerializeField] private Transform _gunRoot;
+    [Header("Components")]
+    [SerializeField] private Transform _thirdPersonRoot;
+    [SerializeField] private Transform _firstPersonRoot;
+    //[SerializeField] private Transform _firstPersonArm;
+    private CharacterMovement _charaMovement;
+
+    [Header("Settings")]
+    [SerializeField] private float _mouseSensitivity = 2.0f;
+
+    // [SerializeField] private Transform _gunRoot;
     public float Pitch { get; private set; }
     public float Yaw { get; private set; }
 
-    private CharacterMovement _charaMovement;
     private void Awake()
     {
         // if (!isLocalPlayer) Destroy(this);
@@ -86,17 +92,20 @@ public class LocalPlayerController : NetworkBehaviour
         Cursor.visible = false;
         if (isLocalPlayer)
         {
-            _firstPerson.gameObject.SetActive(true);
-            _thirdPerson.gameObject.SetActive(false);
-            Camera.main.transform.SetParent(_firstPerson);
-            Camera.main.transform.localPosition = Vector3.zero;
+            _firstPersonRoot.gameObject.SetActive(true);
+            _thirdPersonRoot.gameObject.SetActive(false);
+            Camera.main.transform.SetParent(_firstPersonRoot);
+            Camera.main.transform.localPosition = Vector3.up * 1.7f;
             Camera.main.transform.localRotation = Quaternion.identity;
+
+            //_firstPersonArm.SetParent(Camera.main.transform);
+            // _firstPersonArm.transform.localPosition = Vector3.forward;
 
         }
         else
         {
-            _firstPerson.gameObject.SetActive(false);
-            _thirdPerson.gameObject.SetActive(true);
+            _firstPersonRoot.gameObject.SetActive(false);
+            _thirdPersonRoot.gameObject.SetActive(true);
             Destroy(this);
         }
     }
@@ -116,18 +125,17 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void UpdateRotation()
     {
-        Yaw += Input.GetAxis("Mouse X");
-        Pitch += Input.GetAxis("Mouse Y");
+        Yaw += Input.GetAxis("Mouse X") * _mouseSensitivity;
+        Pitch += Input.GetAxis("Mouse Y") * _mouseSensitivity;
         Pitch = Mathf.Clamp(Pitch, -90, 90);
 
-        _firstPerson.localRotation = Quaternion.Euler(Pitch, 0, 0);
-        _gunRoot.localRotation = Quaternion.Euler(Pitch, 0, 0);
+        _firstPersonRoot.localRotation = Quaternion.Euler(Pitch, 0, 0);
         transform.rotation = Quaternion.Euler(0, Yaw, 0);
     }
 
     private void UpdateMovement()
     {
         Vector3 input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        _charaMovement.AddMovement(transform.rotation * input);
+        _charaMovement.AddMovementInput(transform.rotation * input);
     }
 }
