@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Collections;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/guides/networkbehaviour
@@ -95,7 +96,7 @@ public class LocalPlayerController : NetworkBehaviour
             _firstPersonRoot.gameObject.SetActive(true);
             _thirdPersonRoot.gameObject.SetActive(false);
             Camera.main.transform.SetParent(_firstPersonRoot);
-            Camera.main.transform.localPosition = Vector3.up * 1.7f;
+            Camera.main.transform.localPosition = Vector3.zero;
             Camera.main.transform.localRotation = Quaternion.identity;
 
             //_firstPersonArm.SetParent(Camera.main.transform);
@@ -111,19 +112,13 @@ public class LocalPlayerController : NetworkBehaviour
     }
     private void Update()
     {
-        //if (!isLocalPlayer)
-        //{
-        //    Debug.Log("Not Local Player");
-        //    Destroy(this);
-        //    return;
-        //}
-
-        UpdateRotation();
-        UpdateMovement();
-
+        UpdateRotationInput();
+        UpdateMovementInput();
+        UpdateCrouchingInput();
+        UpdateWalkingInput();
     }
 
-    private void UpdateRotation()
+    private void UpdateRotationInput()
     {
         Yaw += Input.GetAxis("Mouse X") * _mouseSensitivity;
         Pitch += Input.GetAxis("Mouse Y") * _mouseSensitivity;
@@ -133,9 +128,53 @@ public class LocalPlayerController : NetworkBehaviour
         transform.rotation = Quaternion.Euler(0, Yaw, 0);
     }
 
-    private void UpdateMovement()
+    private void UpdateMovementInput()
     {
         Vector3 input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
         _charaMovement.AddMovementInput(transform.rotation * input);
+    }
+
+    #region Crouch
+    private Coroutine _crouchCoroutine;
+    private readonly Vector3 _standLocalPosition = new Vector3(0.0f, 1.7f, 0.0f);
+    private readonly Vector3 _crouchLocalPosition = new Vector3(0.0f, 1.0f, 0.0f);
+    private readonly float _crouchSpeed = 5.0f;
+    private float _crouchValue = 0.0f;
+    private void UpdateCrouchingInput()
+    {
+        if (Input.GetButtonDown("Crouch"))
+        {
+            _charaMovement.IsCrouching = true;
+            if (null != _crouchCoroutine) StopCoroutine(_crouchCoroutine);
+            _crouchCoroutine = StartCoroutine(UpdateCrouch(1));
+        }
+        else if (Input.GetButtonUp("Crouch"))
+        {
+            _charaMovement.IsCrouching = false;
+            if (null != _crouchCoroutine) StopCoroutine(_crouchCoroutine);
+            _crouchCoroutine = StartCoroutine(UpdateCrouch(-1));
+        }
+    }
+    IEnumerator UpdateCrouch(float crouch)
+    {
+        while ((crouch > 0 && _crouchValue < 1) || (crouch < 0 && _crouchValue > 0))
+        {
+            _crouchValue = Mathf.Clamp01(_crouchValue + crouch * _crouchSpeed * Time.deltaTime);
+            _firstPersonRoot.localPosition = Vector3.Lerp(_standLocalPosition, _crouchLocalPosition, _crouchValue);
+            yield return null;
+        }
+    }
+    #endregion
+
+    private void UpdateWalkingInput()
+    {
+        if (Input.GetButtonDown("Walk"))
+        {
+            _charaMovement.IsWalking = true;
+        }
+        else if (Input.GetButtonUp("Walk"))
+        {
+            _charaMovement.IsWalking = false;
+        }
     }
 }

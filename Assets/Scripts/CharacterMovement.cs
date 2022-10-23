@@ -13,13 +13,23 @@ public class CharacterMovement : NetworkBehaviour
     [SerializeField] private Animator _thirdPersonAnimator;
 
     private readonly int _fpaSpeedLevel = Animator.StringToHash("SpeedLevel");
+    private readonly int _fpaMovementMultiplier = Animator.StringToHash("MovementMultiplier");
 
     Vector3 _lastMovementInput;
 
     [Header("Ground Locomotion")]
-    [SerializeField] private float _maxJogSpeed = 2.7f;
-    [SerializeField] private float _maxWalkSpeed = 1.8f;
-    [SerializeField] private float _maxCrouchSpeed = 1.2f;
+    [SerializeField] private float _maxJogSpeed = 3.0f;
+    [SerializeField] private float _maxWalkSpeed = 1.9f;
+    [SerializeField] private float _maxCrouchSpeed = 1.68f;
+    public float DesiredSpeed
+    {
+        get
+        {
+            if (IsCrouching) return _maxCrouchSpeed;
+            if (IsWalking) return _maxWalkSpeed;
+            return _maxJogSpeed;
+        }
+    }
     public bool IsWalking { get; set; }
     private bool _isCrouching;
     public bool IsCrouching
@@ -29,7 +39,7 @@ public class CharacterMovement : NetworkBehaviour
         {
             _isCrouching = value;
             _collider.height = _isCrouching ? 1.0f : 1.8f;
-            _collider.center.Set(0.0f, _collider.height / 2.0f, 0.0f);
+            _collider.center = new Vector3(0.0f, _collider.height / 2.0f, 0.0f);
         }
     }
 
@@ -60,17 +70,23 @@ public class CharacterMovement : NetworkBehaviour
     private void CheckOnGround()
     {
         IsOnGround = Physics.CheckSphere(transform.position, _groundCheckRadius, _groundCheckLayers);
-        Debug.Log(IsOnGround);
+        // Debug.Log(IsOnGround);
     }
     
     private void FixedUpdateMovement()
     {
         if (_lastMovementInput != Vector3.zero)
         {
-            Debug.Log(_lastMovementInput);
-            Vector3 targetVelocity = _lastMovementInput * _maxJogSpeed + Vector3.up * _rigidbody.velocity.y;
+            Vector3 targetVelocity = _lastMovementInput * DesiredSpeed;
+
+            targetVelocity += Vector3.up * _rigidbody.velocity.y;
 
             _rigidbody.velocity = Vector3.Lerp(_rigidbody.velocity, targetVelocity, IsOnGround ? 1.0f : _airControl);
+
+            //_firstPersonAnimator.SetFloat(_fpaSpeedLevel, IsCrouching || IsWalking ? 0.5f : 1.0f);
         }
+
+        _firstPersonAnimator.SetFloat(_fpaMovementMultiplier, DesiredSpeed / _maxJogSpeed);
+        _firstPersonAnimator.SetFloat(_fpaSpeedLevel, _lastMovementInput.magnitude);
     }
 }
