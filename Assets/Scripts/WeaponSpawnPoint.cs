@@ -50,7 +50,7 @@ public class WeaponSpawnPoint : MonoBehaviour
 
     void SpawnWeapon(Weapon b)
     {
-
+        //spawn the weapon pickup in that location.
     }
     
 }
