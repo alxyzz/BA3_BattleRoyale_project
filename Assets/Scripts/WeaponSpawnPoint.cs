@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class WeaponSpawnPoint : MonoBehaviour
@@ -15,7 +16,9 @@ public class WeaponSpawnPoint : MonoBehaviour
         melee
     }
     public spawning_type spawnedItem = spawning_type.shortrange;
-    [ReadOnly] public string tip = "If we have a specific weapon prefab below, we will be spawning that, otherwise just pick a random one from the categories above.";
+    //[ReadOnly] public string tip = "If we have a specific weapon prefab below, we will be spawning that, otherwise just pick a random one from the categories above.";
+
+    [Tooltip("If we have a specific weapon prefab below,\nwe will be spawning that, otherwise just pick a random one from the categories above.")]
     public Weapon spawnedWeaponPrefab;
 
     // Start is called before the first frame update
