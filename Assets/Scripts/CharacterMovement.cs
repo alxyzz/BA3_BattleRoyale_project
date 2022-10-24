@@ -2,20 +2,23 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
-using Newtonsoft.Json.Bson;
 
 public class CharacterMovement : NetworkBehaviour
 {
     [Header("Components")]
-    private Rigidbody _rigidbody;
-    private CapsuleCollider _collider;
     [SerializeField] private Animator _firstPersonAnimator;
     [SerializeField] private Animator _thirdPersonAnimator;
+    private Rigidbody _rigidbody;
+    private CapsuleCollider _collider;
 
     private readonly int _fpaSpeedLevel = Animator.StringToHash("SpeedLevel");
     private readonly int _fpaMovementMultiplier = Animator.StringToHash("MovementMultiplier");
 
-    Vector3 _lastMovementInput;
+    private readonly int _tpaSpeedLevelFwd = Animator.StringToHash("SpeedLevelFwd");
+    private readonly int _tpaSpeedLevelRt = Animator.StringToHash("SpeedLevelRt");
+
+    Vector2 _lastMovementRawInput; // device input
+    Vector3 _lastMovementInput; // input converted to world space
 
     [Header("Ground Locomotion")]
     [SerializeField] private float _maxJogSpeed = 3.0f;
@@ -52,15 +55,22 @@ public class CharacterMovement : NetworkBehaviour
         _collider = GetComponent<CapsuleCollider>();
     }
 
+    private void Start()
+    {
+        if (!isLocalPlayer) Destroy(this);
+    }
+
     private void FixedUpdate()
     {
         CheckOnGround();
         FixedUpdateMovement();
     }
 
-    public void AddMovementInput(Vector3 input)
+    public void AddMovementInput(Quaternion rot, Vector2 rawInput)
     {
-        _lastMovementInput = Vector3.ClampMagnitude(input, 1.0f);
+        _lastMovementRawInput = rawInput;
+        Vector3 input = new Vector3(rawInput.x, 0, rawInput.y);
+        _lastMovementInput = Vector3.ClampMagnitude(rot * input, 1.0f);
     }
     [Header("Ground Check")]
     [SerializeField] private float _groundCheckRadius = 0.02f;
@@ -88,5 +98,10 @@ public class CharacterMovement : NetworkBehaviour
 
         _firstPersonAnimator.SetFloat(_fpaMovementMultiplier, DesiredSpeed / _maxJogSpeed);
         _firstPersonAnimator.SetFloat(_fpaSpeedLevel, _lastMovementInput.magnitude);
+
+        _thirdPersonAnimator.SetFloat(_fpaMovementMultiplier, DesiredSpeed / _maxJogSpeed);
+        _thirdPersonAnimator.SetFloat(_tpaSpeedLevelRt, _lastMovementRawInput.x);
+        _thirdPersonAnimator.SetFloat(_tpaSpeedLevelFwd, _lastMovementRawInput.y);
+
     }
 }

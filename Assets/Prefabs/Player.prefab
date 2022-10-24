@@ -155,6 +155,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  tip: 'some tests.
+
+    new line test.'
   _firstPersonAnimator: {fileID: 448747576150112372}
   _thirdPersonAnimator: {fileID: 6413160157435916215}
   _maxJogSpeed: 2.7

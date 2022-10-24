@@ -130,8 +130,10 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void UpdateMovementInput()
     {
-        Vector3 input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        _charaMovement.AddMovementInput(transform.rotation * input);
+        _charaMovement.AddMovementInput(
+            transform.rotation,
+            new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"))
+            );
     }
 
     #region Crouch
