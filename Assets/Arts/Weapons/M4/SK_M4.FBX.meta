@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: f32e520e0c9e14344930a78782b713d6
+guid: 5f24c3ba25eee77458b13b8037114bbd
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable: []
@@ -8,12 +8,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_762x39_Empty
-    second: {fileID: 2100000, guid: d42ec86fb09a75443830b59b35b31d23, type: 2}
+    second: {fileID: 2100000, guid: 11abe2b57a0737740a0e7496ffd5b05f, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: M_KA47
-    second: {fileID: 2100000, guid: d42ec86fb09a75443830b59b35b31d23, type: 2}
+      name: M_AR4
+    second: {fileID: 2100000, guid: 11abe2b57a0737740a0e7496ffd5b05f, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
