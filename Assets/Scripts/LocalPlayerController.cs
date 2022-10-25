@@ -91,6 +91,9 @@ public class LocalPlayerController : NetworkBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        Debug.Log("Local Player Controller Start! " + netId);
+        
         if (isLocalPlayer)
         {
             _firstPersonRoot.gameObject.SetActive(true);
@@ -99,9 +102,10 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.localPosition = Vector3.zero;
             Camera.main.transform.localRotation = Quaternion.identity;
 
-            //_firstPersonArm.SetParent(Camera.main.transform);
-            // _firstPersonArm.transform.localPosition = Vector3.forward;
+            LocalGame.LocalPlayer = gameObject;
 
+            //_firstPersonArm.SetParent(Camera.main.transform);
+            // _firstPersonArm.transform.localPosition = Vector3.forward;            
         }
         else
         {
@@ -116,6 +120,12 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateMovementInput();
         UpdateCrouchingInput();
         UpdateWalkingInput();
+
+        // test for sync
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
+        }
     }
 
     private void UpdateRotationInput()
@@ -130,8 +140,10 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void UpdateMovementInput()
     {
-        Vector3 input = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
-        _charaMovement.AddMovementInput(transform.rotation * input);
+        _charaMovement.AddMovementInput(
+            transform.rotation,
+            new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"))
+            );
     }
 
     #region Crouch

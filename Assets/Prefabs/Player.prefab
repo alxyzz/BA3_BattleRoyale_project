@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 5850119839713585408}
   - component: {fileID: 2851472779822511057}
   - component: {fileID: 2307964040499696304}
+  - component: {fileID: 4821652844760434750}
   - component: {fileID: 6413160157435916215}
   m_Layer: 6
   m_Name: Player
@@ -182,6 +183,24 @@ MonoBehaviour:
   _thirdPersonRoot: {fileID: 4995004804502748976}
   _firstPersonRoot: {fileID: 8926684718146963801}
   _mouseSensitivity: 2
+--- !u!114 &4821652844760434750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 140634701653634783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c12e87dcb32e7534486afd8aa3c179bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  nickname: 
+  health: 0
+  kills: 0
+  bodyColour: {r: 0, g: 0, b: 0, a: 0}
 --- !u!95 &6413160157435916215
 Animator:
   serializedVersion: 4
