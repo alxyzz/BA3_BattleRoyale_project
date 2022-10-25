@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 40262707411099e41b388e446ca3d02c
+guid: bf6364d1a835206428b6affd312f8c7e
 ModelImporter:
   serializedVersion: 21300
   internalIDToNameTable:
@@ -21,13 +21,16 @@ ModelImporter:
     motionNodeName: 
     rigImportErrors: 
     rigImportWarnings: "Copied Avatar Rig Configuration mis-match. Bone length in
-      copied configuration does not match position in animation file:\n\t'ball_l'
-      : position error = 25.299707 mm\n\t'ball_r' : position error = 25.299675 mm\n"
+      copied configuration does not match position in animation file:\n\t'calf_l'
+      : position error = 3.444155 mm\n\t'ball_l' : position error = 25.299707 mm\n\t'calf_r'
+      : position error = 3.435935 mm\n\t'ball_r' : position error = 25.299667 mm\n"
     animationImportErrors: 
     animationImportWarnings: "\nClip 'Unreal Take' has import animation warnings
       that might lower retargeting quality:\nNote: Activate translation DOF on avatar
       to improve retargeting quality.\n\t'spine_02' has translation animation that
-      will be discarded.\n\t'spine_03' has translation animation that will be discarded.\n"
+      will be discarded.\n\t'spine_03' has translation animation that will be discarded.\n\t'calf_l'
+      has translation animation that will be discarded.\n\t'calf_r' has translation
+      animation that will be discarded.\n"
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
@@ -45,14 +48,14 @@ ModelImporter:
       takeName: Unreal Take
       internalID: 0
       firstFrame: 0
-      lastFrame: 7
+      lastFrame: 57
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 1
       loopBlendPositionY: 1

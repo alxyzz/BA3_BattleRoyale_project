@@ -16,6 +16,7 @@ public class CharacterMovement : NetworkBehaviour
 
     private readonly int _tpaSpeedLevelFwd = Animator.StringToHash("SpeedLevelFwd");
     private readonly int _tpaSpeedLevelRt = Animator.StringToHash("SpeedLevelRt");
+    private readonly int _tpaIsCrouch = Animator.StringToHash("IsCrouch");
 
     Vector2 _lastMovementRawInput; // device input
     Vector3 _lastMovementInput; // input converted to world space
@@ -41,7 +42,8 @@ public class CharacterMovement : NetworkBehaviour
         set
         {
             _isCrouching = value;
-            _collider.height = _isCrouching ? 1.0f : 1.8f;
+            _thirdPersonAnimator.SetBool(_tpaIsCrouch, _isCrouching);
+            _collider.height = _isCrouching ? 1.2f : 1.8f;
             _collider.center = new Vector3(0.0f, _collider.height / 2.0f, 0.0f);
         }
     }
@@ -55,18 +57,14 @@ public class CharacterMovement : NetworkBehaviour
         _collider = GetComponent<CapsuleCollider>();
     }
 
-    private void Start()
-    {
-        if (!isLocalPlayer) Destroy(this);
-    }
-
     private void FixedUpdate()
     {
+        if (!isLocalPlayer) return;  // Movement is only handled by the local player
         CheckOnGround();
         FixedUpdateMovement();
     }
 
-    public void AddMovementInput(Quaternion rot, Vector2 rawInput)
+    public void AddMovementInput(Quaternion rot, Vector2 rawInput)   // The server will handle input
     {
         _lastMovementRawInput = rawInput;
         Vector3 input = new Vector3(rawInput.x, 0, rawInput.y);
@@ -102,6 +100,5 @@ public class CharacterMovement : NetworkBehaviour
         _thirdPersonAnimator.SetFloat(_fpaMovementMultiplier, DesiredSpeed / _maxJogSpeed);
         _thirdPersonAnimator.SetFloat(_tpaSpeedLevelRt, _lastMovementRawInput.x);
         _thirdPersonAnimator.SetFloat(_tpaSpeedLevelFwd, _lastMovementRawInput.y);
-
     }
 }
