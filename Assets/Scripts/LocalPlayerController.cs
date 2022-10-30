@@ -104,8 +104,8 @@ public class LocalPlayerController : NetworkBehaviour
 
             LocalGame.LocalPlayer = gameObject;
 
-            //_firstPersonArm.SetParent(Camera.main.transform);
-            // _firstPersonArm.transform.localPosition = Vector3.forward;            
+            _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
+            _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };        
         }
         else
         {
@@ -120,6 +120,7 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateMovementInput();
         UpdateCrouchingInput();
         UpdateWalkingInput();
+        UpdateJumpingInput();
 
         // test for sync
         if (Input.GetKeyDown(KeyCode.Alpha1))
@@ -155,17 +156,14 @@ public class LocalPlayerController : NetworkBehaviour
     private void UpdateCrouchingInput()
     {
         if (Input.GetButtonDown("Crouch"))
-        {
-            _charaMovement.IsCrouching = true;
-            if (null != _crouchCoroutine) StopCoroutine(_crouchCoroutine);
-            _crouchCoroutine = StartCoroutine(UpdateCrouch(1));
-        }
+            _charaMovement.Crouch();
         else if (Input.GetButtonUp("Crouch"))
-        {
-            _charaMovement.IsCrouching = false;
-            if (null != _crouchCoroutine) StopCoroutine(_crouchCoroutine);
-            _crouchCoroutine = StartCoroutine(UpdateCrouch(-1));
-        }
+            _charaMovement.Uncrouch();
+    }
+    public void UpdateCrouchCoroutine(float crouch)
+    {
+        if (null != _crouchCoroutine) StopCoroutine(_crouchCoroutine);
+        _crouchCoroutine = StartCoroutine(UpdateCrouch(crouch));
     }
     IEnumerator UpdateCrouch(float crouch)
     {
@@ -187,6 +185,14 @@ public class LocalPlayerController : NetworkBehaviour
         else if (Input.GetButtonUp("Walk"))
         {
             _charaMovement.IsWalking = false;
+        }
+    }
+
+    private void UpdateJumpingInput()
+    {
+        if (Input.GetButtonDown("Jump"))
+        {
+            _charaMovement.Jump();
         }
     }
 }
