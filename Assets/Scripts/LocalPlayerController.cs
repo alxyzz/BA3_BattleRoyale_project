@@ -73,6 +73,7 @@ public class LocalPlayerController : NetworkBehaviour
     [SerializeField] private Transform _firstPersonRoot;
     //[SerializeField] private Transform _firstPersonArm;
     private CharacterMovement _charaMovement;
+    private PlayerState _playerState;
 
     [Header("Settings")]
     [SerializeField] private float _mouseSensitivity = 2.0f;
@@ -85,6 +86,7 @@ public class LocalPlayerController : NetworkBehaviour
     {
         // if (!isLocalPlayer) Destroy(this);
         _charaMovement = GetComponent<CharacterMovement>();
+        _playerState = GetComponent<PlayerState>();
     }
 
     private void Start()
@@ -122,11 +124,13 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateWalkingInput();
         UpdateJumpingInput();
 
+        CheckInteractable();
         // test for sync
         if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
         }
+
     }
 
     private void UpdateRotationInput()
@@ -195,4 +199,58 @@ public class LocalPlayerController : NetworkBehaviour
             _charaMovement.Jump();
         }
     }
+    [Header("Interaction")]
+    [SerializeField] private LayerMask _interactionLayer;
+    [SerializeField] private float _interactionDistance = 2.5f;
+    private IInteractable _seeingInteractable;
+    private void CheckInteractable()
+    {
+        bool result = Physics.SphereCast(
+            _firstPersonRoot.position,
+            0.3f,
+            _firstPersonRoot.forward,
+            out RaycastHit hit,
+            _interactionDistance,
+            _interactionLayer);
+        if (result)
+        {
+            if (hit.transform.TryGetComponent(out IInteractable i))
+            {
+                if (_seeingInteractable == null)
+                {
+                    _seeingInteractable = i;
+                    _seeingInteractable.StartBeingSeen();
+
+                }
+                else if (i != _seeingInteractable)
+                {
+                    _seeingInteractable.EndBeingSeen();
+                    _seeingInteractable = i;
+                    _seeingInteractable.StartBeingSeen();
+                }
+            }
+            else
+            {
+                if (null != _seeingInteractable)
+                {
+                    _seeingInteractable.EndBeingSeen();
+                    _seeingInteractable = null;
+                }
+            }
+        }
+        else if(null != _seeingInteractable)
+        {
+            
+            _seeingInteractable.EndBeingSeen();
+            _seeingInteractable = null;
+        }
+
+        if (null != _seeingInteractable && Input.GetButtonDown("Interact"))
+        {
+            _seeingInteractable.EndBeingSeen();
+            _seeingInteractable.BeInteracted(_playerState);
+            _seeingInteractable = null;
+        }
+    }
+
 }
