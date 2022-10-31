@@ -24,28 +24,12 @@ public class PlayerBody : NetworkBehaviour
     public Weapon heldWeapon;
     public PlayerBody lastAttackedBy;
 
-    public void GetDamaged(int damage, string damageSource ="", PlayerBody attacker = null)
+    public void GetDamaged(float damage, string damageSource = null, PlayerBody attacker = null)
     {
         health -= damage;
+        Debug.Log("Player got damaged " + damage + " points by " + damageSource ?? damageSource + "." ?? "an unknown damage source.");
     }
 
-
-    public void RefreshHealthState()
-    {
-
-    }
-
-
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
 
     public void PickupWeapon(Weapon w)

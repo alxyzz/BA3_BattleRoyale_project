@@ -81,6 +81,8 @@ public class LocalPlayerController : NetworkBehaviour
     public float Pitch { get; private set; }
     public float Yaw { get; private set; }
 
+
+
     private void Awake()
     {
         // if (!isLocalPlayer) Destroy(this);
@@ -103,7 +105,7 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.localRotation = Quaternion.identity;
 
             LocalGame.LocalPlayer = gameObject;
-
+            DebugGiveWeapon();
             //_firstPersonArm.SetParent(Camera.main.transform);
             // _firstPersonArm.transform.localPosition = Vector3.forward;            
         }
@@ -114,6 +116,16 @@ public class LocalPlayerController : NetworkBehaviour
             Destroy(this);
         }
     }
+
+
+
+    public GameObject DebugWeaponPrefab;
+    private void DebugGiveWeapon()
+    {
+        GameObject b = Instantiate(DebugWeaponPrefab);
+        GetComponent<PlayerState>().currentWeapon = b.GetComponent<Weapon>();
+    }
+
     private void Update()
     {
         UpdateRotationInput();
@@ -126,7 +138,22 @@ public class LocalPlayerController : NetworkBehaviour
         {
             GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
         }
+
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            UpdateShootingInput();
+        }
     }
+
+    private void UpdateShootingInput()
+    {
+        PlayerState local = LocalGame.LocalPlayer.GetComponent<PlayerState>();
+        if (local.currentWeapon != null)
+        {
+            local.currentWeapon.TryFire(); //this is a [Command]
+        }
+    }
+
 
     private void UpdateRotationInput()
     {
