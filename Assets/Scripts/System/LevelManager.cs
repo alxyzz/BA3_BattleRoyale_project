@@ -13,10 +13,11 @@ public class LevelManager : NetworkBehaviour
     }
     // public static void SpawnWeapon(GameObject pfb)
     [Command(requiresAuthority = false)]
-    public void CmdSpawnWeaponOverworld(string weaponName)
+    public void CmdSpawnWeaponOverworld(string weaponName, Vector3 position, int currentAmmo, int backupAmmo)
     {
         string path = Path.Combine("Weapons", "Overworld", weaponName);
-        GameObject obj = Instantiate(Resources.Load<GameObject>(path), new Vector3(0, 3, 0), Quaternion.identity);
+        GameObject obj = Instantiate(Resources.Load<GameObject>(path), position, Quaternion.identity);
+        obj.GetComponent<WeaponOverworld>().SetAmmo(currentAmmo, backupAmmo);
         NetworkServer.Spawn(obj);
     }
 

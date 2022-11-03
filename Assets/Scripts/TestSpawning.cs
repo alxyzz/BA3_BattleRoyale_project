@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class TestSpawning : NetworkBehaviour
 {
-    public GameObject spawning;
     // Update is called once per frame
     void Update()
     {
@@ -13,7 +12,6 @@ public class TestSpawning : NetworkBehaviour
 
         if (Input.GetKeyDown(KeyCode.P))
         {
-            LevelManager.Instance.CmdSpawnWeaponOverworld("AK47");
         }
     }
 }

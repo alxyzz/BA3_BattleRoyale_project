@@ -131,6 +131,15 @@ public class LocalPlayerController : NetworkBehaviour
             GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
         }
 
+        // test
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            GetComponent<PlayerState>().CmdSetCurrentWeapon("AKS74U");
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            GetComponent<PlayerState>().CmdSetCurrentWeapon("M4A1");
+        }
     }
 
     private void UpdateRotationInput()

@@ -10,19 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8553f235b4ff14644a57b12b14ceee6e, type: 3}
-  m_Name: AK47
+  m_Name: M4A1
   m_EditorClassIdentifier: 
-  _weaponName: AK47
+  _weaponName: M4A1
   _type: 0
   _rangeType: 2
   _automatic: 1
-  _fireDelay: 0.03
-  _spread: 15
-  _recoil: 5
-  _damageHead: 200
-  _damageBody: 45
-  _damageLeg: 30
-  _reloadDuration: 1
-  _ammo: 30
+  _fireDelay: 0.05
+  _spread: 8
+  _recoil: 3
+  _damageHead: 90
+  _damageBody: 30
+  _damageLeg: 20
+  _reloadDuration: 0.8
+  _ammo: 25
   _backupAmmo: 120
-  _movementMultiplier: 0.8
+  _movementMultiplier: 0.88

@@ -27,6 +27,9 @@ public class WeaponData : ScriptableObject
     public WeaponRangeType RangeType => _rangeType;
 
     [Header("Fire")]
+    [Tooltip("is the weapon an automatic firearm (be able to hold LMB to fire)")]
+    [SerializeField] private bool _automatic;
+    public bool IsAutomatic => _automatic;
     [Tooltip("delay between firing")]
     [SerializeField] private float _fireDelay;
     public float FireDelay => _fireDelay;
@@ -52,4 +55,8 @@ public class WeaponData : ScriptableObject
     public int Ammo => _ammo;
     [SerializeField] private int _backupAmmo;
     public int BackupAmmo => _backupAmmo;
+
+    [Header("miscellaneous")]
+    [SerializeField] private float _movementMultiplier;
+    public float MovementMultiplier => _movementMultiplier;
 }
