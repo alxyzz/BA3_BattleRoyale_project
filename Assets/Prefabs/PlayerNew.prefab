@@ -169,11 +169,13 @@ MonoBehaviour:
   syncInterval: 0.1
   _tpSocketWeaponRight: {fileID: 772769596965861139}
   _fpSocketWeaponRight: {fileID: 8017992689721539383}
+  _firstPersonAnimator: {fileID: 448747576150112372}
+  _thirdPersonAnimator: {fileID: 5828494218876683875}
   nickname: 
   health: 0
   kills: 0
   bodyColour: {r: 0, g: 0, b: 0, a: 0}
-  currentWeapon: 
+  currentWeaponName: 
 --- !u!143 &2258259429533691904
 CharacterController:
   m_ObjectHideFlags: 0

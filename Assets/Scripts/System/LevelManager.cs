@@ -12,6 +12,10 @@ public class LevelManager : NetworkBehaviour
         Instance = this;
     }
     // public static void SpawnWeapon(GameObject pfb)
+
+    [Header("Initialise")]
+    public WeaponData initialWeapon;
+
     [Command(requiresAuthority = false)]
     public void CmdSpawnWeaponOverworld(string weaponName, Vector3 position, int currentAmmo, int backupAmmo)
     {
@@ -21,4 +25,5 @@ public class LevelManager : NetworkBehaviour
         NetworkServer.Spawn(obj);
     }
 
+    
 }
