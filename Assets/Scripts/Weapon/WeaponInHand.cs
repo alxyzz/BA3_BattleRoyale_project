@@ -44,6 +44,8 @@ public class WeaponInHand : MonoBehaviour
         _canFire = false;
         StartCoroutine(FireRecover());
     }
+
+
     private IEnumerator FireRecover()
     {
         yield return new WaitForSeconds(_identity.Data.FireDelay);
@@ -52,6 +54,48 @@ public class WeaponInHand : MonoBehaviour
     public bool CanReload()
     {
         return _identity.BackupAmmo > 0;
+    }
+    public int GetDamage()
+    {
+        return _identity.Data.DamageBody;
+
+    }
+
+    public string GetName()
+    {
+        return _identity.Data.WeaponName;
+    }
+
+    public float GetSpread()
+    {
+        return _identity.Data.Spread;
+    }
+
+    public float GetMaxRange()
+    {
+        try
+        {
+            switch (_identity.Data.RangeType)
+            {
+                case WeaponRangeType.SHORT:
+                    return 10;
+
+                case WeaponRangeType.MEDIUM:
+                    return 20;
+
+                case WeaponRangeType.LONG:
+                    return 40;
+
+                default:
+                    throw new System.Exception("@ GetMaxRange(): _identity.Data.RangeType has unpredicted state.");
+
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.Log(e.Message);
+            throw;
+        }
     }
     public virtual void StartReload()
     {

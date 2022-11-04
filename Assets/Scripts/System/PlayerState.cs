@@ -1,7 +1,5 @@
 using Mirror;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Security.Principal;
@@ -15,7 +13,7 @@ using UnityEngine.Rendering;
  *   Health
  *   Score
  * Player States for all players exist on all machines and can replicate data from the server to the client to keep things in sync.
-*/ 
+*/
 public class PlayerState : NetworkBehaviour
 {
     public override void OnStartClient()
@@ -111,7 +109,7 @@ public class PlayerState : NetworkBehaviour
         foreach (var item in GetComponentsInChildren<SkinnedMeshRenderer>())
         {
             item.material.color = newColour;
-        }        
+        }
     }
 
 
@@ -128,13 +126,8 @@ public class PlayerState : NetworkBehaviour
             _thirdPersonAnimator.SetTrigger(_aFire);
             weapon.FireLocal();
             UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);            
-            CmdFire();
+            CmdFire(weapon.GetSpread(), weapon.GetMaxRange(), weapon.GetDamage(), weapon.GetName(), nickname);
         }
-    }
-    [Command]
-    public void CmdFire()
-    {
-
     }
 
     [Command]
@@ -169,7 +162,6 @@ public class PlayerState : NetworkBehaviour
     }
     [Command]
     private void CmdSetCurWpnName(string newName) { currentWeaponName = newName; }
-
     public void EquipAt(int index)
     {
         if (inventoryWeapons[index] != null)
@@ -177,23 +169,49 @@ public class PlayerState : NetworkBehaviour
             CmdSetCurWpn(inventoryWeapons[index].Data.WeaponName, index);
         }
     }
-    public void EquipPrevious()
+
+    [Command]
+    public void CmdFire(float spread, float maxRange, int damage, string weaponName, string attacker)
     {
-        int k;
-        for (int i = 1; i < inventoryWeapons.Length; i++)
+       
+        RaycastHit[] results = new RaycastHit[10];
+        Transform play = LocalGame.LocalPlayer.transform;
+        Vector3 forward = transform.TransformDirection(Vector3.forward) * 10;
+        //spread
+        Vector3 deviation3D = Random.insideUnitCircle * spread;
+        Quaternion rot = Quaternion.LookRotation(Vector3.forward * maxRange + deviation3D);
+        Vector3 forwardVector = Camera.main.transform.rotation * rot * Vector3.forward;
+        if (Application.isEditor)
         {
-            k = (currentWeaponIndex + inventoryWeapons.Length - i) % inventoryWeapons.Length;
-            if (inventoryWeapons[k] != null)
-            {
-                EquipAt(k);
-                break;
-            }
+            Debug.DrawRay(play.position, forwardVector, Color.green);
+        }
+        Ray ray = new Ray(play.position, forwardVector);
+        int hits = Physics.RaycastNonAlloc(ray, results);
+        System.Array.Sort(results, (RaycastHit x, RaycastHit y) => x.distance.CompareTo(y.distance));
+        //todo - check for cover penetration here, for now only the first hit object
+        if (results[0].transform.tag == "Player")
+        {
+            results[0].transform.GetComponent<PlayerBody>().GetDamaged(damage, weaponName, attacker);
+        }
+
+        for (int i = 0; i < hits; i++)
+        {
+            Debug.Log("Weapon hits, in chronological order: "+ i +" -> " + results[i].transform.gameObject);
         }
     }
-    public void EquipNext()
+
+   
+
+
+
+public void EquipPrevious()
+{
+    int k;
+    for (int i = 1; i < inventoryWeapons.Length; i++)
     {
-        int k;
-        for (int i = 1; i < inventoryWeapons.Length; i++)
+        k = (currentWeaponIndex + inventoryWeapons.Length - i) % inventoryWeapons.Length;
+        Debug.Log(k);
+        if (inventoryWeapons[k] != null)
         {
             k = (currentWeaponIndex + i) % inventoryWeapons.Length;
             if (inventoryWeapons[k] != null)
@@ -203,4 +221,18 @@ public class PlayerState : NetworkBehaviour
             }
         }
     }
+}
+public void EquipNext()
+{
+    int k;
+    for (int i = 1; i < inventoryWeapons.Length; i++)
+    {
+            k = (currentWeaponIndex + inventoryWeapons.Length - i) % inventoryWeapons.Length;
+            if (inventoryWeapons[k] != null)
+        {
+            EquipAt(k);
+            break;
+        }
+    }
+}
 }
