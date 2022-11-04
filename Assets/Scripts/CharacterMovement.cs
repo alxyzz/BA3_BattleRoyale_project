@@ -13,6 +13,7 @@ public class CharacterMovement : NetworkBehaviour
     [SerializeField] private Animator _firstPersonAnimator;
     [SerializeField] private Animator _thirdPersonAnimator;
     private CharacterController _charaCtrl;
+    private PlayerState _playerState;
 
     private readonly int _fpaSpeedLevel = Animator.StringToHash("SpeedLevel");
     private readonly int _fpaMovementMultiplier = Animator.StringToHash("MovementMultiplier");
@@ -38,9 +39,11 @@ public class CharacterMovement : NetworkBehaviour
     {
         get
         {
-            if (IsCrouching) return _maxCrouchSpeed;
-            if (IsWalking) return _maxWalkSpeed;
-            return _maxJogSpeed;
+            float weapon = 1.0f;
+            if (_playerState.CurrentWeaponIdentity != null) weapon = _playerState.CurrentWeaponIdentity.Data.MovementMultiplier;
+            if (IsCrouching) return _maxCrouchSpeed * weapon;
+            if (IsWalking) return _maxWalkSpeed * weapon;
+            return _maxJogSpeed * weapon;
         }
     }
     public bool IsWalking { get; set; }
@@ -48,6 +51,7 @@ public class CharacterMovement : NetworkBehaviour
     void Awake()
     {
         _charaCtrl = GetComponent<CharacterController>();
+        _playerState = GetComponent<PlayerState>();
     }
 
     private void Update()

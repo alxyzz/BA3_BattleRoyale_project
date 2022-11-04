@@ -84,7 +84,6 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void Awake()
     {
-        // if (!isLocalPlayer) Destroy(this);
         _charaMovement = GetComponent<CharacterMovement>();
         _playerState = GetComponent<PlayerState>();
     }
@@ -123,22 +122,14 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateCrouchingInput();
         UpdateWalkingInput();
         UpdateJumpingInput();
+        UpdateFireInput();
+        UpdateChangeWeaponInput();
 
         CheckInteractable();
         // test for sync
-        if (Input.GetKeyDown(KeyCode.Alpha1))
+        if (Input.GetKeyDown(KeyCode.Alpha0))
         {
             GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
-        }
-
-        // test
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            GetComponent<PlayerState>().CmdSetCurrentWeapon("AKS74U");
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            GetComponent<PlayerState>().CmdSetCurrentWeapon("M4A1");
         }
     }
 
@@ -262,4 +253,43 @@ public class LocalPlayerController : NetworkBehaviour
         }
     }
 
+
+    #region Weapon
+    private void UpdateFireInput()
+    {
+        if (Input.GetButtonDown("Fire1"))
+        {
+            _playerState.FireLocal(0);
+        }
+        else if (Input.GetButton("Fire1"))
+        {
+            _playerState.FireLocal(1);
+        }
+    }
+    private void UpdateChangeWeaponInput()
+    {
+        float val = Input.GetAxisRaw("Mouse ScrollWheel");
+        if (val < 0)
+        {
+            _playerState.EquipNext();
+        }
+        else if (val > 0)
+        {
+            _playerState.EquipPrevious();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            _playerState.EquipAt(0);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            _playerState.EquipAt(1);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            _playerState.EquipAt(2);
+        }
+    }
+    #endregion
 }

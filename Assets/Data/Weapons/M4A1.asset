@@ -16,7 +16,7 @@ MonoBehaviour:
   _type: 0
   _rangeType: 2
   _automatic: 1
-  _fireDelay: 0.05
+  _fireDelay: 0.08
   _spread: 8
   _recoil: 3
   _damageHead: 90

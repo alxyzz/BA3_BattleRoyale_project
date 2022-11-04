@@ -15,6 +15,7 @@ public class UIManager : MonoBehaviour
         ClearInteractionHint();
     }
 
+    [Header("Interaction")]
     [SerializeField] private Text _interactionHint;
 
     public static void AddInteractionHint(string content)
@@ -24,5 +25,36 @@ public class UIManager : MonoBehaviour
     public static void ClearInteractionHint()
     {
         instance._interactionHint.text = "";
+    }
+
+    [Header("Inventory")]
+    [SerializeField] private UI_Panel_Inventory _inventory;
+    public static void SetNewWeapon(int index, string newName)
+    {
+        instance._inventory.SetNewWeapon(index, newName);
+    }
+    public static void ActiveInventorySlot(int index)
+    {
+        instance._inventory.ActiveSlot(index);
+    }
+    //public static void ActiveInventoryPrevious()
+    //{
+    //    instance._inventory.ActivePrevious();
+    //}
+    //public static void ActiveInventoryNext()
+    //{
+    //    instance._inventory.ActiveNext();
+    //}
+
+    [Header("Ammo")]
+    [SerializeField] private Text _ammo;
+    [SerializeField] private Text _backupAmmo;
+    public static void SetAmmo(int val)
+    {
+        instance._ammo.text = val.ToString();
+    }
+    public static void SetBackupAmmo(int val)
+    {
+        instance._backupAmmo.text = val.ToString();
     }
 }
