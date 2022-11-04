@@ -189,15 +189,28 @@ public class PlayerState : NetworkBehaviour
         int hits = Physics.RaycastNonAlloc(ray, results);
         System.Array.Sort(results, (RaycastHit x, RaycastHit y) => x.distance.CompareTo(y.distance));
         //todo - check for cover penetration here, for now only the first hit object
-        if (results[0].transform.tag == "Player")
+        if (results[0].transform != null)
         {
-            results[0].transform.GetComponent<PlayerBody>().GetDamaged(damage, weaponName, attacker);
-        }
+            if (results[0].transform.tag == "Player")
+            {
+                try
+                {
+                    results[0].transform.GetComponent<PlayerBody>().GetDamaged(damage, weaponName);
+                }
+                catch (System.Exception e)
+                {
+                    Debug.Log(e.Message);
+                    throw;
+                }
 
-        for (int i = 0; i < hits; i++)
-        {
-            Debug.Log("Weapon hits, in chronological order: "+ i +" -> " + results[i].transform.gameObject);
+            }
+
+            for (int i = 0; i < hits; i++)
+            {
+                Debug.Log("Weapon hits, in chronological order: " + i + " -> " + results[i].transform.gameObject);
+            }
         }
+        
     }
 
    
