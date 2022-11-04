@@ -162,7 +162,6 @@ public class PlayerState : NetworkBehaviour
     }
     [Command]
     private void CmdSetCurWpnName(string newName) { currentWeaponName = newName; }
-
     public void EquipAt(int index)
     {
         if (inventoryWeapons[index] != null)
@@ -204,23 +203,13 @@ public class PlayerState : NetworkBehaviour
    
 
 
-public void EquipAt(int index)
-{
-    if (inventoryWeapons[index] != null)
-    {
-        CurrentWeaponIndex = index;
-        UIManager.ActiveInventorySlot(CurrentWeaponIndex);
-        UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
-        UIManager.SetBackupAmmo(CurrentWeaponIdentity.BackupAmmo);
-        CmdSetCurrentWeapon(CurrentWeaponIdentity.Data.WeaponName);
-    }
-}
+
 public void EquipPrevious()
 {
     int k;
     for (int i = 1; i < inventoryWeapons.Length; i++)
     {
-        k = (CurrentWeaponIndex + inventoryWeapons.Length - i) % inventoryWeapons.Length;
+        k = (currentWeaponIndex + inventoryWeapons.Length - i) % inventoryWeapons.Length;
         Debug.Log(k);
         if (inventoryWeapons[k] != null)
         {
@@ -238,8 +227,8 @@ public void EquipNext()
     int k;
     for (int i = 1; i < inventoryWeapons.Length; i++)
     {
-        k = (CurrentWeaponIndex + i) % inventoryWeapons.Length;
-        if (inventoryWeapons[k] != null)
+            k = (currentWeaponIndex + inventoryWeapons.Length - i) % inventoryWeapons.Length;
+            if (inventoryWeapons[k] != null)
         {
             EquipAt(k);
             break;
