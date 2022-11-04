@@ -1,6 +1,8 @@
 using Mirror;
 using System.Collections;
 using System.IO;
+using System.Reflection;
+using System.Security.Principal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -19,9 +21,6 @@ public class PlayerState : NetworkBehaviour
         base.OnStartClient();
         Debug.Log("Player state start. Net ID : " + netId);
         GameState.PlayerStates.Add(netId, this);
-        // initial weapon
-        WeaponData initData = LevelManager.Instance.initialWeapon;
-        PickUpWeapon(new WeaponIdentityData(initData, initData.Ammo, initData.BackupAmmo));
     }
     public override void OnStopClient()
     {
@@ -30,9 +29,13 @@ public class PlayerState : NetworkBehaviour
         GameState.PlayerStates.Remove(netId);
     }
 
-    private void Awake()
+    private void Start()
     {
-        CurrentWeaponIndex = -1;
+        if (!isLocalPlayer) return;
+        Debug.Log("Local player start!");
+        // initial weapon
+        WeaponData initData = LevelManager.Instance.initialWeapon;
+        PickUpWeapon(new WeaponIdentityData(initData, initData.Ammo, initData.BackupAmmo));
     }
 
     [Header("Components")]
@@ -43,20 +46,21 @@ public class PlayerState : NetworkBehaviour
     private readonly int _aFire = Animator.StringToHash("Fire");
 
 
-    [SyncVar] [HideInInspector] public string nickname;
-    [SyncVar] [HideInInspector] public int health;
-    [SyncVar] [HideInInspector] public int kills;
-    [SyncVar(hook = nameof(OnBodyColourChanged))] [HideInInspector] public Color bodyColour;
-    [SyncVar(hook = nameof(OnCurrentWeaponChanged))] [HideInInspector] public string currentWeaponName;
+    [SyncVar][HideInInspector] public string nickname;
+    [SyncVar][HideInInspector] public int health;
+    [SyncVar][HideInInspector] public int kills;
+    [SyncVar(hook = nameof(OnBodyColourChanged))][HideInInspector] public Color bodyColour;
 
     // WeaponRangeType.SHORT = 0 ; WeaponRangeType.MEDIUM = 1 ; WeaponRangeType.LONG = 2
-    public int CurrentWeaponIndex { get; private set; }
+    [SyncVar][HideInInspector] public int currentWeaponIndex = -1;
+    [SyncVar(hook = nameof(OnCurWpnNameChanged))][HideInInspector] public string currentWeaponName = "";
+
     public WeaponIdentityData[] inventoryWeapons = new WeaponIdentityData[3];
     public WeaponIdentityData CurrentWeaponIdentity
     {
         get
         {
-            if (CurrentWeaponIndex >= 0) return inventoryWeapons[CurrentWeaponIndex];
+            if (currentWeaponIndex >= 0) return inventoryWeapons[currentWeaponIndex];
             else return null;
         }
     }
@@ -64,31 +68,26 @@ public class PlayerState : NetworkBehaviour
 
     public void PickUpWeapon(WeaponIdentityData identity)
     {
+        UIManager.SetNewWeapon((int)identity.Data.RangeType, identity.Data.WeaponName);
+
         // if the range type of picked weapon is the same as the one I currently equipped
-        if (CurrentWeaponIndex == (int)identity.Data.RangeType)
+        if (currentWeaponIndex == (int)identity.Data.RangeType)
         {
             ThrowWeapon(CurrentWeaponIdentity);
-            CurrentWeaponIndex = (int)identity.Data.RangeType;
-            inventoryWeapons[CurrentWeaponIndex] = identity;
-            UIManager.SetAmmo(identity.CurrentAmmo);
-            UIManager.SetBackupAmmo(identity.BackupAmmo);
+            inventoryWeapons[currentWeaponIndex] = identity;
+            EquipAt(currentWeaponIndex);
         }
         // if I don't have a weapon equipped yet
-        else if (CurrentWeaponIndex < 0)
+        else if (currentWeaponIndex < 0)
         {
-            CurrentWeaponIndex = (int)identity.Data.RangeType;
-            inventoryWeapons[CurrentWeaponIndex] = identity;
-            UIManager.ActiveInventorySlot(CurrentWeaponIndex);
-            UIManager.SetAmmo(identity.CurrentAmmo);
-            UIManager.SetBackupAmmo(identity.BackupAmmo);
+            inventoryWeapons[(int)identity.Data.RangeType] = identity;
+            EquipAt((int)identity.Data.RangeType);
         }
         else
         {
             inventoryWeapons[(int)identity.Data.RangeType] = identity;
         }
-
-        UIManager.SetNewWeapon((int)identity.Data.RangeType, identity.Data.WeaponName);
-        CmdSetCurrentWeapon(CurrentWeaponIdentity.Data.WeaponName);
+        // CmdSetCurrentWeapon(CurrentWeaponIdentity.Data.WeaponName);
     }
     public void TryThrowCurrentWeapon()
     {
@@ -113,28 +112,6 @@ public class PlayerState : NetworkBehaviour
         }
     }
 
-    [Command]
-    public void CmdSetCurrentWeapon(string weapon) { currentWeaponName = weapon; }
-    private void OnCurrentWeaponChanged(string oldWeapon, string newWeapon)
-    {
-        if (newWeapon == string.Empty) return;
-        if (_currentWeaponObj != null) Destroy(_currentWeaponObj);
-
-        string path = Path.Combine("Weapons", "InHand", newWeapon);
-        if (isLocalPlayer)
-        {
-            _currentWeaponObj = Instantiate(Resources.Load<GameObject>(path), _fpSocketWeaponRight);
-            foreach (var item in _currentWeaponObj.GetComponentsInChildren<Renderer>())
-            {
-                item.shadowCastingMode = ShadowCastingMode.Off;
-            }
-            _currentWeaponObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity);
-        }
-        else
-        {
-            _currentWeaponObj = Instantiate(Resources.Load<GameObject>(path), _tpSocketWeaponRight);
-        }
-    }
 
     /// <summary>
     /// 
@@ -148,8 +125,49 @@ public class PlayerState : NetworkBehaviour
             _firstPersonAnimator.SetTrigger(_aFire);
             _thirdPersonAnimator.SetTrigger(_aFire);
             weapon.FireLocal();
-            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
+            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);            
             CmdFire(weapon.GetSpread(), weapon.GetMaxRange(), weapon.GetDamage(), weapon.GetName(), nickname);
+        }
+    }
+
+    [Command]
+    private void CmdSetCurWpn(string newName, int index)
+    {
+        currentWeaponIndex = index;
+        currentWeaponName = newName;
+    }
+    private void OnCurWpnNameChanged(string oldName, string newName)
+    {
+        if (_currentWeaponObj != null) Destroy(_currentWeaponObj);
+
+        string path = Path.Combine("Weapons", "InHand", newName);
+        if (isLocalPlayer)
+        {
+            _currentWeaponObj = Instantiate(Resources.Load<GameObject>(path), _fpSocketWeaponRight);
+            foreach (var item in _currentWeaponObj.GetComponentsInChildren<Renderer>())
+            {
+                item.shadowCastingMode = ShadowCastingMode.Off;
+            }
+            Debug.Log(CurrentWeaponIdentity.Data.WeaponName);
+            _currentWeaponObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity);
+
+            UIManager.ActiveInventorySlot(currentWeaponIndex);
+            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
+            UIManager.SetBackupAmmo(CurrentWeaponIdentity.BackupAmmo);
+        }
+        else
+        {
+            _currentWeaponObj = Instantiate(Resources.Load<GameObject>(path), _tpSocketWeaponRight);
+        }
+    }
+    [Command]
+    private void CmdSetCurWpnName(string newName) { currentWeaponName = newName; }
+
+    public void EquipAt(int index)
+    {
+        if (inventoryWeapons[index] != null)
+        {
+            CmdSetCurWpn(inventoryWeapons[index].Data.WeaponName, index);
         }
     }
 
@@ -206,8 +224,12 @@ public void EquipPrevious()
         Debug.Log(k);
         if (inventoryWeapons[k] != null)
         {
-            EquipAt(k);
-            break;
+            k = (currentWeaponIndex + i) % inventoryWeapons.Length;
+            if (inventoryWeapons[k] != null)
+            {
+                EquipAt(k);
+                break;
+            }
         }
     }
 }
