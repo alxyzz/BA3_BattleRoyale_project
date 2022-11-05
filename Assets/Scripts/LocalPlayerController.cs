@@ -71,8 +71,10 @@ public class LocalPlayerController : NetworkBehaviour
     [Header("Components")]
     [SerializeField] private Transform _thirdPersonRoot;
     [SerializeField] private Transform _firstPersonRoot;
-    //[SerializeField] private Transform _firstPersonArm;
+    public Vector3 FirstPersonForward => _firstPersonRoot.forward;
+    [SerializeField] private Transform _firstPersonArm;
     private CharacterMovement _charaMovement;
+    public CharacterMovement CharaMovementComp => _charaMovement;
     private PlayerState _playerState;
 
     [Header("Settings")]
@@ -102,7 +104,7 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.SetParent(_firstPersonRoot);
             Camera.main.transform.localPosition = Vector3.zero;
             Camera.main.transform.localRotation = Quaternion.identity;
-
+            _firstPersonArm.SetParent(Camera.main.transform);
             LocalGame.LocalPlayer = gameObject;
 
             _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
@@ -124,6 +126,7 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateJumpingInput();
         UpdateFireInput();
         UpdateChangeWeaponInput();
+        UpdateReloadInput();
 
         CheckInteractable();
         // test for sync
@@ -259,36 +262,34 @@ public class LocalPlayerController : NetworkBehaviour
     {
         if (Input.GetButtonDown("Fire1"))
         {
-            _playerState.FireLocal(0);
+            _playerState.FireBurst();
         }
         else if (Input.GetButton("Fire1"))
         {
-            _playerState.FireLocal(1);
+            _playerState.FireContinuously();
+        }
+        else if (Input.GetButtonUp("Fire1"))
+        {
+            _playerState.FireStop();
         }
     }
     private void UpdateChangeWeaponInput()
     {
         float val = Input.GetAxisRaw("Mouse ScrollWheel");
-        if (val < 0)
-        {
-            _playerState.EquipNext();
-        }
-        else if (val > 0)
-        {
-            _playerState.EquipPrevious();
-        }
-
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
+        if (val != 0)
+            _playerState.EquipScroll((int)val);
+        else if (Input.GetKeyDown(KeyCode.Alpha1))
             _playerState.EquipAt(0);
-        }
         else if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
             _playerState.EquipAt(1);
-        }
         else if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
             _playerState.EquipAt(2);
+    }
+    private void UpdateReloadInput()
+    {
+        if (Input.GetButtonDown("Reload"))
+        {
+            _playerState.StartReload();
         }
     }
     #endregion

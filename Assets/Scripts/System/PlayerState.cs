@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Security.Principal;
 using UnityEngine;
+using UnityEngine.Animations;
 using UnityEngine.Rendering;
 
 /* A Player State is the state of a participant in the game.
@@ -39,11 +40,15 @@ public class PlayerState : NetworkBehaviour
     }
 
     [Header("Components")]
+    [SerializeField] private Transform _tpSocketWeaponLeft;
     [SerializeField] private Transform _tpSocketWeaponRight;
+    [SerializeField] private Transform _fpSocketWeaponLeft;
     [SerializeField] private Transform _fpSocketWeaponRight;
     [SerializeField] private Animator _firstPersonAnimator;
     [SerializeField] private Animator _thirdPersonAnimator;
     private readonly int _aFire = Animator.StringToHash("Fire");
+    private readonly int _aReload = Animator.StringToHash("Reload");
+    private readonly int _aUnholster = Animator.StringToHash("Unholster");
 
 
     [SyncVar][HideInInspector] public string nickname;
@@ -65,29 +70,31 @@ public class PlayerState : NetworkBehaviour
         }
     }
     private GameObject _currentWeaponObj;
+    public WeaponInHand CurrentWeaponInHand
+    {
+        get
+        {
+            if (_currentWeaponObj != null) return _currentWeaponObj.GetComponent<WeaponInHand>();
+            else return null;
+        }
+    }
 
     public void PickUpWeapon(WeaponIdentityData identity)
     {
         UIManager.SetNewWeapon((int)identity.Data.RangeType, identity.Data.WeaponName);
 
-        // if the range type of picked weapon is the same as the one I currently equipped
-        if (currentWeaponIndex == (int)identity.Data.RangeType)
+        if (inventoryWeapons[(int)identity.Data.RangeType] != null)
         {
-            ThrowWeapon(CurrentWeaponIdentity);
-            inventoryWeapons[currentWeaponIndex] = identity;
-            EquipAt(currentWeaponIndex);
+            ThrowWeapon(inventoryWeapons[(int)identity.Data.RangeType]);
         }
+        inventoryWeapons[(int)identity.Data.RangeType] = identity;
+
+        // if the range type of picked weapon is the same as the one I currently equipped
         // if I don't have a weapon equipped yet
-        else if (currentWeaponIndex < 0)
+        if (currentWeaponIndex < 0 || currentWeaponIndex == (int)identity.Data.RangeType)
         {
-            inventoryWeapons[(int)identity.Data.RangeType] = identity;
             EquipAt((int)identity.Data.RangeType);
         }
-        else
-        {
-            inventoryWeapons[(int)identity.Data.RangeType] = identity;
-        }
-        // CmdSetCurrentWeapon(CurrentWeaponIdentity.Data.WeaponName);
     }
     public void TryThrowCurrentWeapon()
     {
@@ -112,22 +119,30 @@ public class PlayerState : NetworkBehaviour
         }
     }
 
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="param">0 means button down; 1 means holding button</param>
-    public void FireLocal(int param)
+    public void FireBurst()
     {
-        WeaponInHand weapon = _currentWeaponObj.GetComponent<WeaponInHand>();
-        if (weapon.CanFire(param))
+        if (CurrentWeaponInHand.CanFireBurst())
         {
             _firstPersonAnimator.SetTrigger(_aFire);
             _thirdPersonAnimator.SetTrigger(_aFire);
-            weapon.FireLocal();
-            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);            
-            CmdFire(weapon.GetSpread(), weapon.GetMaxRange(), weapon.GetDamage(), weapon.GetName(), nickname);
+            CurrentWeaponInHand.FireBurst();
+            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
         }
+
+    }
+    public void FireContinuously()
+    {
+        if (CurrentWeaponInHand.CanFireContinuously())
+        {
+            _firstPersonAnimator.SetTrigger(_aFire);
+            _thirdPersonAnimator.SetTrigger(_aFire);
+            CurrentWeaponInHand.FireContinuously();
+            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
+        }
+    }
+    public void FireStop()
+    {
+        CurrentWeaponInHand.FireStop();
     }
 
     [Command]
@@ -148,12 +163,12 @@ public class PlayerState : NetworkBehaviour
             {
                 item.shadowCastingMode = ShadowCastingMode.Off;
             }
-            Debug.Log(CurrentWeaponIdentity.Data.WeaponName);
-            _currentWeaponObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity);
+            _currentWeaponObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity, GetComponent<LocalPlayerController>());
 
             UIManager.ActiveInventorySlot(currentWeaponIndex);
             UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
             UIManager.SetBackupAmmo(CurrentWeaponIdentity.BackupAmmo);
+            UIManager.SetCrosshairWeaponSpread(CurrentWeaponIdentity.Data.CrosshairSpread);
         }
         else
         {
@@ -166,14 +181,15 @@ public class PlayerState : NetworkBehaviour
     {
         if (inventoryWeapons[index] != null)
         {
+            _firstPersonAnimator.SetTrigger(_aUnholster);
+            _thirdPersonAnimator.SetTrigger(_aUnholster);
             CmdSetCurWpn(inventoryWeapons[index].Data.WeaponName, index);
         }
     }
-
     [Command]
     public void CmdFire(float spread, float maxRange, int damage, string weaponName, string attacker)
     {
-       
+
         RaycastHit[] results = new RaycastHit[10];
         Transform play = LocalGame.LocalPlayer.transform;
         Vector3 forward = transform.TransformDirection(Vector3.forward) * 10;
@@ -210,23 +226,15 @@ public class PlayerState : NetworkBehaviour
                 Debug.Log("Weapon hits, in chronological order: " + i + " -> " + results[i].transform.gameObject);
             }
         }
-        
+
     }
 
-   
-
-
-
-public void EquipPrevious()
-{
-    int k;
-    for (int i = 1; i < inventoryWeapons.Length; i++)
+    public void EquipScroll(int val)
     {
-        k = (currentWeaponIndex + inventoryWeapons.Length - i) % inventoryWeapons.Length;
-        Debug.Log(k);
-        if (inventoryWeapons[k] != null)
+        int k;
+        for (int i = 1; i < inventoryWeapons.Length; i++)
         {
-            k = (currentWeaponIndex + i) % inventoryWeapons.Length;
+            k = (currentWeaponIndex + inventoryWeapons.Length + val * i) % inventoryWeapons.Length;
             if (inventoryWeapons[k] != null)
             {
                 EquipAt(k);
@@ -234,18 +242,33 @@ public void EquipPrevious()
             }
         }
     }
-}
-public void EquipNext()
-{
-    int k;
-    for (int i = 1; i < inventoryWeapons.Length; i++)
+    public void OnUnholstered()
     {
-            k = (currentWeaponIndex + inventoryWeapons.Length - i) % inventoryWeapons.Length;
-            if (inventoryWeapons[k] != null)
+        CurrentWeaponInHand.IsHolstered = false;
+    }
+
+    public void StartReload()
+    {
+        if (CurrentWeaponInHand.CanReload())
         {
-            EquipAt(k);
-            break;
+            _firstPersonAnimator.SetTrigger(_aReload);
+            _thirdPersonAnimator.SetTrigger(_aReload);
+            CurrentWeaponInHand.StartReload();
         }
     }
-}
+    public void ReloadAttachToHand(int attach)
+    {
+        if (attach > 0)
+            CurrentWeaponInHand.RemoveMagazine(isLocalPlayer ? _fpSocketWeaponLeft : _tpSocketWeaponLeft);
+        else
+            CurrentWeaponInHand.LoadMagazine();
+    }
+    public void Reload()
+    {
+        CurrentWeaponInHand.Reload();
+    }
+    public void EndReload()
+    {
+        CurrentWeaponInHand.EndReload();
+    }
 }

@@ -57,4 +57,19 @@ public class UIManager : MonoBehaviour
     {
         instance._backupAmmo.text = val.ToString();
     }
+
+    [Header("Crosshair")]
+    [SerializeField] private UI_Crosshair _crosshair;
+    public static void SetCrosshairWeaponSpread(float pixel)
+    {
+        instance._crosshair.WeaponSpread = pixel;
+    }
+    public static void SetCrosshairMovementSpread(float pixel)
+    {
+        instance._crosshair.MovementSpread = pixel;
+    }
+    public static void SetCrosshairFireSpread(float pixel, float duration)
+    {
+        instance._crosshair.SetFireSpread(pixel, duration);
+    }
 }
