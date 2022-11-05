@@ -103,7 +103,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 979331998115613063}
-  - component: {fileID: 2897967270836452095}
   m_Layer: 0
   m_Name: b_gun_mag
   m_TagString: Untagged
@@ -127,28 +126,6 @@ Transform:
   m_Father: {fileID: 9176012651585145309}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1773428102 &2897967270836452095
-ParentConstraint:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 654157989684746815}
-  m_Enabled: 1
-  m_Weight: 0.97
-  m_TranslationAtRest: {x: -0, y: -0.016172541, z: 0.16682222}
-  m_RotationAtRest: {x: 0, y: 0, z: 0}
-  m_TranslationOffsets: []
-  m_RotationOffsets: []
-  m_AffectTranslationX: 1
-  m_AffectTranslationY: 1
-  m_AffectTranslationZ: 1
-  m_AffectRotationX: 1
-  m_AffectRotationY: 1
-  m_AffectRotationZ: 1
-  m_IsContraintActive: 1
-  m_IsLocked: 0
-  m_Sources: []
 --- !u!1 &2403390815100793191
 GameObject:
   m_ObjectHideFlags: 0
@@ -226,7 +203,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84db50fa05da1b048b5837d649909303, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _magazine: {fileID: 2897967270836452095}
+  _magazine: {fileID: 979331998115613063}
   _muzzle: {fileID: 6672748689676251360}
 --- !u!1 &4131015236588058627
 GameObject:

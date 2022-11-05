@@ -46,6 +46,28 @@ public class CharacterMovement : NetworkBehaviour
             return _maxJogSpeed * weapon;
         }
     }
+    public float RecoilMultiplier
+    {
+        get
+        {
+            if (!IsOnGround) return 4.0f;
+            if (IsCrouching) return 0.6f;
+            if (IsWalking) return 0.8f;
+            if (_lastMovementInput != Vector3.zero) return _lastMovementInput.sqrMagnitude + 1.0f;
+            return 1.0f;
+        }
+    }
+    public float SpreadMultiplier
+    {
+        get
+        {
+            if (!IsOnGround) return 10.0f;
+            if (IsCrouching) return 0.6f;
+            if (IsWalking) return 0.8f;
+            if (_lastMovementInput != Vector3.zero) return _lastMovementInput.sqrMagnitude * 4.0f + 1.0f;
+            return 1.0f;
+        }
+    }
     public bool IsWalking { get; set; }
 
     void Awake()
@@ -82,6 +104,9 @@ public class CharacterMovement : NetworkBehaviour
             _inAirVelocity += Physics.gravity * Time.deltaTime * _gravityScale;
         }
         _charaCtrl.Move(_inAirVelocity * Time.deltaTime);
+
+        // Update Crosshair
+        UpdateCrosshairSpread();
     }
 
     public void AddMovementInput(Quaternion rot, Vector2 rawInput)
@@ -89,8 +114,6 @@ public class CharacterMovement : NetworkBehaviour
         _lastMovementRawInput = rawInput;
         Vector3 input = new Vector3(rawInput.x, 0, rawInput.y);
         _lastMovementInput = Vector3.ClampMagnitude(rot * input, 1.0f);
-
-
 
         _firstPersonAnimator.SetFloat(_fpaMovementMultiplier, DesiredSpeed / _maxJogSpeed);
         _firstPersonAnimator.SetFloat(_fpaSpeedLevel, _lastMovementInput.magnitude);
@@ -172,4 +195,24 @@ public class CharacterMovement : NetworkBehaviour
         }
     }
     #endregion
+
+    private void UpdateCrosshairSpread()
+    {
+        if (IsOnGround)
+        {
+            if (IsCrouching)
+                UIManager.SetCrosshairMovementSpread(0);
+            else if (_lastMovementInput != Vector3.zero)
+            {
+                if (IsWalking)
+                    UIManager.SetCrosshairMovementSpread(30 * _lastMovementInput.sqrMagnitude);
+                else
+                    UIManager.SetCrosshairMovementSpread(100 * _lastMovementInput.sqrMagnitude);
+            }
+            else
+                UIManager.SetCrosshairMovementSpread(5);
+        }
+        else
+            UIManager.SetCrosshairMovementSpread(200);
+    }
 }
