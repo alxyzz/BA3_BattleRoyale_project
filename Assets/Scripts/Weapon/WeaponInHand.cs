@@ -200,8 +200,12 @@ public class WeaponInHand : MonoBehaviour
             RecoilValue += _identity.Data.BurstRecoilGain;
         }
 
-        Camera.main.transform.localRotation = GetClampedRecoilRot(-5);
-
+        //Camera.main.transform.localRotation = GetClampedRecoilRot(-5);
+        Camera.main.GetComponent<CameraShake>().ShakeTo(
+            GetClampedRecoilRot(-5),
+            _identity.Data.FireDelay,
+            _identity.Data.RecoilRecoveryDuration.Evaluate(RecoilValue / _identity.Data.Ammo));
+        UIManager.SetCrosshairFireSpread(_identity.Data.CrosshairSpread * 2.0f, _identity.Data.FireDelay);
         StartCoroutine(ContinuousFiringDelay());
     }
 
@@ -222,8 +226,13 @@ public class WeaponInHand : MonoBehaviour
         //    0f
         //   );
 
-        Camera.main.transform.localRotation = GetClampedRecoilRot(-5);
-        Camera.main.GetComponent<CameraShake>().Shake(_identity.Data.FireDelay);
+        //Camera.main.transform.localRotation = GetClampedRecoilRot(-5);
+        //Camera.main.GetComponent<CameraShake>().Shake(_identity.Data.FireDelay);
+        Camera.main.GetComponent<CameraShake>().ShakeTo(
+            GetClampedRecoilRot(-5),
+            _identity.Data.FireDelay,
+            _identity.Data.RecoilRecoveryDuration.Evaluate(RecoilValue / _identity.Data.Ammo));
+        UIManager.SetCrosshairFireSpread(_identity.Data.CrosshairSpread * 2.0f, _identity.Data.FireDelay);
         StartCoroutine(ContinuousFiringDelay());
     }
 
@@ -232,7 +241,7 @@ public class WeaponInHand : MonoBehaviour
     {
         if (!_isFiring) return;
         _isFiring = false;
-        Camera.main.GetComponent<CameraShake>().Stop();
+        // Camera.main.GetComponent<CameraShake>().Stop();
         _cRecoilRecovery = StartCoroutine(RecoilRecovery());
     }
 
@@ -262,11 +271,11 @@ public class WeaponInHand : MonoBehaviour
         while (_recoilValue > 0)
         {
             _recoilValue = Mathf.Max(0, _recoilValue - speed * Time.deltaTime);
-            Camera.main.transform.localRotation = Quaternion.Slerp(
-                Quaternion.identity,
-                startRot,
-                _recoilValue / startValue
-                );
+            //Camera.main.transform.localRotation = Quaternion.Slerp(
+            //    Quaternion.identity,
+            //    startRot,
+            //    _recoilValue / startValue
+            //    );
             yield return null;
         }
     }

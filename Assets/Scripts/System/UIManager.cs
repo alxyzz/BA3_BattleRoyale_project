@@ -68,8 +68,8 @@ public class UIManager : MonoBehaviour
     {
         instance._crosshair.MovementSpread = pixel;
     }
-    public static float GetCrosshairSpread()
+    public static void SetCrosshairFireSpread(float pixel, float duration)
     {
-        return instance._crosshair.Spread;
+        instance._crosshair.SetFireSpread(pixel, duration);
     }
 }

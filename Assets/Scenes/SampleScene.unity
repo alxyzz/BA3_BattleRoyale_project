@@ -1512,6 +1512,39 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  _defaultRecoveryCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.3
+      value: 1.3
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!224 &1030869231 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1236276888923657393, guid: a46a1a0c8662cd148abdd0abdacaf0b5, type: 3}
@@ -2956,6 +2989,82 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 152196141}
     m_Modifications:
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[1].time
+      value: 0.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[2].time
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[1].value
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[2].value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[0].inSlope
+      value: 6.6666665
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[1].inSlope
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[2].inSlope
+      value: -3.7803316
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[0].outSlope
+      value: 6.6666665
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[1].inWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[1].outSlope
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[2].inWeight
+      value: 0.03156122
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[2].outSlope
+      value: -3.7803316
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[0].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[1].outWeight
+      value: 0.07710725
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[2].outWeight
+      value: 0.33333334
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[0].tangentMode
+      value: 34
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[1].tangentMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6484584695536183659, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
+      propertyPath: _defaultFireSpreadCurve.m_Curve.Array.data[2].tangentMode
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6484584695536183660, guid: f850c4d5df3af0946b37b175856feab2, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
