@@ -117,8 +117,18 @@ public class LocalPlayerController : NetworkBehaviour
             Destroy(this);
         }
     }
+
+
+    private void UpdateHandyDandyDebugQuitForEscape()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+    }
     private void Update()
     {
+        UpdateHandyDandyDebugQuitForEscape();
         UpdateRotationInput();
         UpdateMovementInput();
         UpdateCrouchingInput();

@@ -187,21 +187,21 @@ public class PlayerState : NetworkBehaviour
         }
     }
     [Command]
-    public void CmdFire(float spread, float maxRange, int damage, string weaponName, string attacker)
+    public void CmdFire(PlayerState actingPlayer, float spread, float maxRange, int damage, string weaponName, string attacker)
     {
 
         RaycastHit[] results = new RaycastHit[10];
-        Transform play = LocalGame.LocalPlayer.transform;
-        Vector3 forward = transform.TransformDirection(Vector3.forward) * 10;
+        
+        Vector3 forward = actingPlayer.transform.TransformDirection(Vector3.forward) * 10;
         //spread
         Vector3 deviation3D = Random.insideUnitCircle * spread;
         Quaternion rot = Quaternion.LookRotation(Vector3.forward * maxRange + deviation3D);
-        Vector3 forwardVector = Camera.main.transform.rotation * rot * Vector3.forward;
+        Vector3 forwardVector = actingPlayer.transform.rotation * rot * Vector3.forward;
         if (Application.isEditor)
         {
-            Debug.DrawRay(play.position, forwardVector, Color.green);
+            Debug.DrawRay(actingPlayer.transform.position, forwardVector, Color.green);
         }
-        Ray ray = new Ray(play.position, forwardVector);
+        Ray ray = new Ray(actingPlayer.transform.position, forwardVector);
         int hits = Physics.RaycastNonAlloc(ray, results);
         System.Array.Sort(results, (RaycastHit x, RaycastHit y) => x.distance.CompareTo(y.distance));
         //todo - check for cover penetration here, for now only the first hit object
@@ -211,7 +211,8 @@ public class PlayerState : NetworkBehaviour
             {
                 try
                 {
-                    results[0].transform.GetComponent<PlayerBody>().GetDamaged(damage, weaponName);
+                    PlayerState target = results[0].transform.GetComponent<PlayerState>();
+                    target.GetDamaged(target, damage, weaponName, actingPlayer);
                 }
                 catch (System.Exception e)
                 {
@@ -227,6 +228,17 @@ public class PlayerState : NetworkBehaviour
             }
         }
 
+    }
+    [Command]
+    public void GetDamaged(PlayerState who, int damage, string weaponName, PlayerState attacker) //use null for the last two if the damage was environmental
+    {
+        string log = "";
+        bool? b = null;
+        if (weaponName != null && weaponName != "" && attacker != null) //not environmental damage)
+        {
+            b = true;
+        }
+        log += "Player " + who.nickname + " was damaged for " + damage + " HP by " + b ?? (attacker + "'s " + weaponName + ".") ?? "their own foolishness.";
     }
 
     public void EquipScroll(int val)

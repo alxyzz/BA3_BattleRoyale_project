@@ -8,25 +8,31 @@ public class WeaponSpawnPoint : MonoBehaviour
     /// <summary>
     /// Spawn one of the following categories of weapons, or just spawn a specific one if one is defined
     /// </summary>
+    /// 
+
+    public List<GameObject> shortWeapons = new();
+    public List<GameObject> mediumWeapons = new();
+    public List<GameObject> longWeapons = new();
+
+
     public enum spawning_type
     {
         shortrange,
         mediumrange,
         longrange,
-        melee
     }
     public spawning_type spawnedItem = spawning_type.shortrange;
     //[ReadOnly] public string tip = "If we have a specific weapon prefab below, we will be spawning that, otherwise just pick a random one from the categories above.";
 
     [Tooltip("If we have a specific weapon prefab below,\nwe will be spawning that, otherwise just pick a random one from the categories above.")]
-    public Weapon spawnedWeaponPrefab;
+    public GameObject specificSpawnedWeaponPrefab;
 
     // Start is called before the first frame update
     void Start()
     {
-        if (spawnedWeaponPrefab != null)
+        if (specificSpawnedWeaponPrefab != null)
         {
-            SpawnWeapon(spawnedWeaponPrefab);
+            SpawnWeapon(specificSpawnedWeaponPrefab);
             
         }
         else
@@ -34,16 +40,13 @@ public class WeaponSpawnPoint : MonoBehaviour
             switch (spawnedItem)
             {
                 case spawning_type.shortrange:
-                    SpawnWeapon(WeaponLists.Instance.w_short[Random.Range(0, WeaponLists.Instance.w_melee.Count - 1)]);
+                    SpawnWeapon(shortWeapons[Random.Range(0, shortWeapons.Count - 1)]);
                     break;
                 case spawning_type.mediumrange:
-                    SpawnWeapon(WeaponLists.Instance.w_medium[Random.Range(0, WeaponLists.Instance.w_melee.Count - 1)]);
+                    SpawnWeapon(mediumWeapons[Random.Range(0, mediumWeapons.Count - 1)]);
                     break;
                 case spawning_type.longrange:
-                    SpawnWeapon(WeaponLists.Instance.w_long[Random.Range(0, WeaponLists.Instance.w_melee.Count - 1)]);
-                    break;
-                case spawning_type.melee:
-                    SpawnWeapon(WeaponLists.Instance.w_melee[Random.Range(0, WeaponLists.Instance.w_melee.Count-1)]);
+                    SpawnWeapon(longWeapons[Random.Range(0, longWeapons.Count - 1)]);
                     break;
                 default:
                     break;
@@ -51,7 +54,7 @@ public class WeaponSpawnPoint : MonoBehaviour
         }
     }
 
-    void SpawnWeapon(Weapon b)
+    void SpawnWeapon(GameObject b)
     {
         //spawn the weapon pickup in that location.
     }
