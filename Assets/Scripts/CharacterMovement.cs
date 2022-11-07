@@ -9,19 +9,20 @@ using Unity.VisualScripting;
 [RequireComponent(typeof(CharacterController))]
 public class CharacterMovement : NetworkBehaviour
 {
-    [Header("Components")]
-    [SerializeField] private Animator _firstPersonAnimator;
-    [SerializeField] private Animator _thirdPersonAnimator;
+    // [Header("Components")]
+    // [SerializeField] private Animator _firstPersonAnimator;
+    // [SerializeField] private Animator _thirdPersonAnimator;
+    private CharacterAnimHandler _charaAnimHandler;
     private CharacterController _charaCtrl;
     private PlayerState _playerState;
 
-    private readonly int _fpaSpeedLevel = Animator.StringToHash("SpeedLevel");
-    private readonly int _fpaMovementMultiplier = Animator.StringToHash("MovementMultiplier");
+    private readonly int _aSpeedLevel = Animator.StringToHash("SpeedLevel");
+    private readonly int _aMovementMultiplier = Animator.StringToHash("MovementMultiplier");
 
-    private readonly int _tpaSpeedLevelFwd = Animator.StringToHash("SpeedLevelFwd");
-    private readonly int _tpaSpeedLevelRt = Animator.StringToHash("SpeedLevelRt");
-    private readonly int _tpaIsCrouch = Animator.StringToHash("IsCrouch");
-    private readonly int _tpaIsInAir = Animator.StringToHash("IsInAir");
+    private readonly int _aSpeedLevelFwd = Animator.StringToHash("SpeedLevelFwd");
+    private readonly int _aSpeedLevelRt = Animator.StringToHash("SpeedLevelRt");
+    private readonly int _aIsCrouch = Animator.StringToHash("IsCrouch");
+    private readonly int _aIsInAir = Animator.StringToHash("IsInAir");
 
     Vector2 _lastMovementRawInput; // device input
     Vector3 _lastMovementInput; // input converted to world space
@@ -72,6 +73,7 @@ public class CharacterMovement : NetworkBehaviour
 
     void Awake()
     {
+        _charaAnimHandler = GetComponent<CharacterAnimHandler>();
         _charaCtrl = GetComponent<CharacterController>();
         _playerState = GetComponent<PlayerState>();
     }
@@ -115,12 +117,12 @@ public class CharacterMovement : NetworkBehaviour
         Vector3 input = new Vector3(rawInput.x, 0, rawInput.y);
         _lastMovementInput = Vector3.ClampMagnitude(rot * input, 1.0f);
 
-        _firstPersonAnimator.SetFloat(_fpaMovementMultiplier, DesiredSpeed / _maxJogSpeed);
-        _firstPersonAnimator.SetFloat(_fpaSpeedLevel, _lastMovementInput.magnitude);
+        _charaAnimHandler.FpSetFloat(_aMovementMultiplier, DesiredSpeed / _maxJogSpeed);
+        _charaAnimHandler.FpSetFloat(_aSpeedLevel, _lastMovementInput.magnitude);
 
-        _thirdPersonAnimator.SetFloat(_fpaMovementMultiplier, DesiredSpeed / _maxJogSpeed);
-        _thirdPersonAnimator.SetFloat(_tpaSpeedLevelRt, _lastMovementRawInput.x);
-        _thirdPersonAnimator.SetFloat(_tpaSpeedLevelFwd, _lastMovementRawInput.y);
+        _charaAnimHandler.CmdTpSetFloat(_aMovementMultiplier, DesiredSpeed / _maxJogSpeed);
+        _charaAnimHandler.CmdTpSetFloat(_aSpeedLevelRt, _lastMovementRawInput.x);
+        _charaAnimHandler.CmdTpSetFloat(_aSpeedLevelFwd, _lastMovementRawInput.y);
     }
 
     [Header("Ground Check")]
@@ -140,7 +142,7 @@ public class CharacterMovement : NetworkBehaviour
             if (!IsOnGround)
             {
                 IsOnGround = true;
-                _thirdPersonAnimator.SetBool(_tpaIsInAir, false);
+                _charaAnimHandler.CmdTpSetBool(_aIsInAir, false);
                 OnLanded?.Invoke(hit);
             }
         }
@@ -157,7 +159,7 @@ public class CharacterMovement : NetworkBehaviour
         if (CanCrouch)
         {
             IsCrouching = true;
-            _thirdPersonAnimator.SetBool(_tpaIsCrouch, true);
+            _charaAnimHandler.CmdTpSetBool(_aIsCrouch, true);
             _charaCtrl.height = 1.2f;
             _charaCtrl.center = new Vector3(0.0f, _charaCtrl.height / 2.0f, 0.0f);
             OnStartCrouching?.Invoke();
@@ -168,7 +170,7 @@ public class CharacterMovement : NetworkBehaviour
         if (IsCrouching)
         {
             IsCrouching = false;
-            _thirdPersonAnimator.SetBool(_tpaIsCrouch, false);
+            _charaAnimHandler.CmdTpSetBool(_aIsCrouch, false);
             _charaCtrl.height = 1.8f;
             _charaCtrl.center = new Vector3(0.0f, _charaCtrl.height / 2.0f, 0.0f);
             OnEndCrouching?.Invoke();
@@ -189,7 +191,7 @@ public class CharacterMovement : NetworkBehaviour
         if (CanJump)
         {
             // Uncrouch();
-            _thirdPersonAnimator.SetBool(_tpaIsInAir, true);
+            _charaAnimHandler.CmdTpSetBool(_aIsInAir, true);
             _inAirVelocity.y = _jumpUpSpeed;
             OnJumped?.Invoke();
         }
