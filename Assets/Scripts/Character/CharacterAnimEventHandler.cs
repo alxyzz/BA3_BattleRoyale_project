@@ -5,26 +5,26 @@ using UnityEngine;
 public class CharacterAnimEventHandler : MonoBehaviour
 {
     // private Animator _animator;
-    private PlayerState _playerState;
+    protected PlayerState _playerState;
     private void Awake()
     {
         // _animator = GetComponent<Animator>();
         _playerState = GetComponentInParent<PlayerState>();
     }
 
-    private void OnUnholstered()
+    protected void OnUnholstered()
     {
         _playerState.OnUnholstered();
     }
-    private void ReloadAttachToHand(int attach)
+    protected void ReloadAttachToHand(int attach)
     {
         _playerState.ReloadAttachToHand(attach);
     }
-    private void Reload()
+    protected void Reload()
     {
         _playerState.Reload();
     }
-    private void EndReload()
+    protected void EndReload()
     {
         _playerState.EndReload();
     }

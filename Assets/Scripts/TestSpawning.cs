@@ -12,6 +12,18 @@ public class TestSpawning : NetworkBehaviour
 
         if (Input.GetKeyDown(KeyCode.P))
         {
+            CmdTest();
         }
+    }
+
+    [Command]
+    public void CmdTest()
+    {
+        RpcTest();
+    }
+    [ClientRpc]
+    public void RpcTest()
+    {
+        Debug.Log("P click!");
     }
 }

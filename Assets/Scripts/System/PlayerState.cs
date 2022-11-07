@@ -30,6 +30,10 @@ public class PlayerState : NetworkBehaviour
         GameState.PlayerStates.Remove(netId);
     }
 
+    private void Awake()
+    {
+        _charaAnimHandler = GetComponent<CharacterAnimHandler>();
+    }
     private void Start()
     {
         if (!isLocalPlayer) return;
@@ -44,8 +48,9 @@ public class PlayerState : NetworkBehaviour
     [SerializeField] private Transform _tpSocketWeaponRight;
     [SerializeField] private Transform _fpSocketWeaponLeft;
     [SerializeField] private Transform _fpSocketWeaponRight;
-    [SerializeField] private Animator _firstPersonAnimator;
-    [SerializeField] private Animator _thirdPersonAnimator;
+    // [SerializeField] private Animator _firstPersonAnimator;
+    // [SerializeField] private Animator _thirdPersonAnimator;
+    private CharacterAnimHandler _charaAnimHandler;
     private readonly int _aFire = Animator.StringToHash("Fire");
     private readonly int _aReload = Animator.StringToHash("Reload");
     private readonly int _aUnholster = Animator.StringToHash("Unholster");
@@ -123,8 +128,8 @@ public class PlayerState : NetworkBehaviour
     {
         if (CurrentWeaponInHand.CanFireBurst())
         {
-            _firstPersonAnimator.SetTrigger(_aFire);
-            _thirdPersonAnimator.SetTrigger(_aFire);
+            _charaAnimHandler.FpSetTrigger(_aFire);
+            _charaAnimHandler.CmdTpSetTrigger(_aFire);
             CurrentWeaponInHand.FireBurst();
             UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
         }
@@ -134,8 +139,8 @@ public class PlayerState : NetworkBehaviour
     {
         if (CurrentWeaponInHand.CanFireContinuously())
         {
-            _firstPersonAnimator.SetTrigger(_aFire);
-            _thirdPersonAnimator.SetTrigger(_aFire);
+            _charaAnimHandler.FpSetTrigger(_aFire);
+            _charaAnimHandler.CmdTpSetTrigger(_aFire);
             CurrentWeaponInHand.FireContinuously();
             UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
         }
@@ -181,8 +186,8 @@ public class PlayerState : NetworkBehaviour
     {
         if (inventoryWeapons[index] != null)
         {
-            _firstPersonAnimator.SetTrigger(_aUnholster);
-            _thirdPersonAnimator.SetTrigger(_aUnholster);
+            _charaAnimHandler.FpSetTrigger(_aUnholster);
+            _charaAnimHandler.CmdTpSetTrigger(_aUnholster);
             CmdSetCurWpn(inventoryWeapons[index].Data.WeaponName, index);
         }
     }
@@ -251,8 +256,8 @@ public class PlayerState : NetworkBehaviour
     {
         if (CurrentWeaponInHand.CanReload())
         {
-            _firstPersonAnimator.SetTrigger(_aReload);
-            _thirdPersonAnimator.SetTrigger(_aReload);
+            _charaAnimHandler.FpSetTrigger(_aReload);
+            _charaAnimHandler.CmdTpSetTrigger(_aReload);
             CurrentWeaponInHand.StartReload();
         }
     }
