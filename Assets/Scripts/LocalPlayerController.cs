@@ -92,33 +92,32 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        Debug.Log("Local Player Controller Start! " + netId);
-        
         if (isLocalPlayer)
         {
-            _firstPersonRoot.gameObject.SetActive(true);
-            _thirdPersonRoot.gameObject.SetActive(false);
+            if (!isServer) // if the local client is not the host
+                _thirdPersonRoot.gameObject.SetActive(false);
+
             Camera.main.transform.SetParent(_firstPersonRoot);
             Camera.main.transform.localPosition = Vector3.zero;
             Camera.main.transform.localRotation = Quaternion.identity;
             _firstPersonArm.SetParent(Camera.main.transform);
-            LocalGame.LocalPlayer = gameObject;
 
             _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
-            _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };        
+            _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };
+
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
         else
         {
             _firstPersonRoot.gameObject.SetActive(false);
-            _thirdPersonRoot.gameObject.SetActive(true);
             Destroy(this);
         }
     }
     private void Update()
     {
+        if (!isLocalPlayer) return;
+
         UpdateRotationInput();
         UpdateMovementInput();
         UpdateCrouchingInput();

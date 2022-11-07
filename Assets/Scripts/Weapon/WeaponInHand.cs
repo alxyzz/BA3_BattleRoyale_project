@@ -111,7 +111,7 @@ public class WeaponInHand : MonoBehaviour
         return CanFireBurst();
     }
 
-    private void HitScan()
+    protected virtual void HitScan(out List<Vector3> directions)
     {
         Vector3 dir = RecoilRot * _playerCtrl.FirstPersonForward;
         Vector3 center = Camera.main.transform.position + dir;
@@ -119,25 +119,18 @@ public class WeaponInHand : MonoBehaviour
         float angle = Random.Range(0, Mathf.PI * 2);
         center.x += Mathf.Cos(angle) * r;
         center.y += Mathf.Sin(angle) * r;
-        if (Physics.Raycast(
-            Camera.main.transform.position,
-            center - Camera.main.transform.position,
-            out RaycastHit hit,
-            _identity.Data.MaxRange))
-        {
-            GameObject obj = Instantiate(Resources.Load<GameObject>("test"));
-            obj.transform.position = hit.point;
-        }        
+        directions = new List<Vector3>();
+        directions.Add(center - Camera.main.transform.position);  
     }
 
-    public virtual void FireBurst()
+    public virtual void FireBurst(out List<Vector3> directions)
     {
         _identity.CurrentAmmo--;
         _isFiring = true;
         if (_cRecoilRecovery != null) StopCoroutine(_cRecoilRecovery);
 
         // 根据当前 _recoilValue 计算受后坐力影响得到的偏移射线
-        HitScan();
+        HitScan(out directions);
 
         // generate the ray
         //float spreadRadius = Random.Range(0.0f, UIManager.GetCrosshairSpread());
@@ -209,13 +202,13 @@ public class WeaponInHand : MonoBehaviour
         StartCoroutine(ContinuousFiringDelay());
     }
 
-    public virtual void FireContinuously()
+    public virtual void FireContinuously(out List<Vector3> directions)
     {
         _identity.CurrentAmmo--;
         _isFiring = true;
 
         // 根据当前 _recoilValue 计算受后坐力影响得到的偏移射线
-        HitScan();
+        HitScan(out directions);
 
         RecoilValue += 1;
 
@@ -300,11 +293,11 @@ public class WeaponInHand : MonoBehaviour
     {
         return !IsHolstered && !_isReloading && _identity.CurrentAmmo < _identity.Data.Ammo && _identity.BackupAmmo > 0;
     }
-    public int GetDamage()
-    {
-        return _identity.Data.DamageBody;
+    //public int GetDamage()
+    //{
+    //    return _identity.Data.DamageBody;
 
-    }
+    //}
 
     public string GetName()
     {

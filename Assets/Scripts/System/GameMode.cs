@@ -12,6 +12,11 @@ using Mirror;
  */
 public class GameMode : NetworkManager
 {
-
+    public override void Awake()
+    {
+        base.Awake();
+        GameObject[] weapons = Resources.LoadAll<GameObject>("Weapons/Overworld");
+        spawnPrefabs.AddRange(weapons);
+    }
 
 }

@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class WeaponOverworld : NetworkBehaviour, IInteractable
 {
+    private GameObject _widget;
     [SerializeField] private WeaponData _data;
     public int CurrentAmmo { get; private set; }
     public int BackupAmmo { get; private set; }
@@ -32,12 +33,15 @@ public class WeaponOverworld : NetworkBehaviour, IInteractable
     {
         // Debug.Log(name + " was unseen.");
         UIManager.ClearInteractionHint();
+        Destroy(_widget);
     }
 
     public void StartBeingSeen()
     {
         Debug.Log(name + " was seen.");
         UIManager.AddInteractionHint("E: Pick up");
+        _widget = Instantiate(Resources.Load<GameObject>("UI/InfoWidget"));
+        _widget.GetComponent<WID_Info>().Initialise(transform, _data.WeaponName, CurrentAmmo, BackupAmmo, _data.RangeType);
     }
 
     [Command(requiresAuthority = false)]

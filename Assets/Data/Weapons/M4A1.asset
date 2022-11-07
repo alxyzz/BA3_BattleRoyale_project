@@ -15,7 +15,6 @@ MonoBehaviour:
   _weaponName: M4A1
   _type: 0
   _rangeType: 2
-  _effectiveRange: 50
   _maxRange: 60
   _automatic: 1
   _fireDelay: 0.08
@@ -139,9 +138,43 @@ MonoBehaviour:
   _burstRecoilGain: 0.3
   _crosshairSpread: 5
   _fireSpread: 0.01
-  _damageHead: 90
-  _damageBody: 30
-  _damageLeg: 20
+  _baseDamage: 30
+  _dmgHeadMultiplier: 3.2
+  _dmgBodyMultiplier: 0.9
+  _dmgArmMultiplier: 1
+  _dmgThighMultiplier: 0.7
+  _dmgCalfMultiplier: 0.6
+  _distanceAttenuation:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 2
+      inWeight: 0
+      outWeight: 0.8813073
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -9.944158
+      outSlope: -9.944158
+      tangentMode: 0
+      weightedMode: 3
+      inWeight: 0.09988624
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _PenetrationAttenuation:
+  - 0.75
+  - 0.35
+  - 0.15
+  - 0.5
+  - 0.95
+  - 0.5
   _reloadMultiplier: 1
   _ammo: 25
   _backupAmmo: 120
