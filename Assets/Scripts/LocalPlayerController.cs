@@ -73,6 +73,9 @@ public class LocalPlayerController : NetworkBehaviour
     [SerializeField] private Transform _firstPersonRoot;
     public Vector3 FirstPersonForward => _firstPersonRoot.forward;
     [SerializeField] private Transform _firstPersonArm;
+    [SerializeField] private SkinnedMeshRenderer _fpSMR;
+    [SerializeField] private SkinnedMeshRenderer _tpSMR;
+
     private CharacterMovement _charaMovement;
     public CharacterMovement CharaMovementComp => _charaMovement;
     private PlayerState _playerState;
@@ -94,8 +97,10 @@ public class LocalPlayerController : NetworkBehaviour
     {
         if (isLocalPlayer)
         {
-            if (!isServer) // if the local client is not the host
-                _thirdPersonRoot.gameObject.SetActive(false);
+            _tpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+
+            //if (!isServer) // if the local client is not the host
+            //    _thirdPersonRoot.gameObject.SetActive(false);
 
             Camera.main.transform.SetParent(_firstPersonRoot);
             Camera.main.transform.localPosition = Vector3.zero;
@@ -110,7 +115,8 @@ public class LocalPlayerController : NetworkBehaviour
         }
         else
         {
-            _firstPersonRoot.gameObject.SetActive(false);
+            _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+            // _firstPersonRoot.gameObject.SetActive(false);
             Destroy(this);
         }
     }

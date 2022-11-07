@@ -150,6 +150,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
             CurrentWeaponInHand.FireBurst(out List<Vector3> directions);
             UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
+
             CmdFire(curWpnDbIndex, Camera.main.transform.position, directions);
         }
 

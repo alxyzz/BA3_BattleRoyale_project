@@ -111,6 +111,8 @@ MonoBehaviour:
   _thirdPersonRoot: {fileID: 4995004804502748976}
   _firstPersonRoot: {fileID: 8926684718146963801}
   _firstPersonArm: {fileID: 5826084922473013774}
+  _fpSMR: {fileID: 3700051707942462403}
+  _tpSMR: {fileID: 1758994365136842612}
   _mouseSensitivity: 2
   _interactionLayer:
     serializedVersion: 2
@@ -454,6 +456,10 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: -7745108037278365217, guid: 12b68b8478a38064d85afc6d3754a721, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7745108037278365217, guid: 12b68b8478a38064d85afc6d3754a721, type: 3}
       propertyPath: m_AABB.m_Center.y
       value: 0.9117747
       objectReference: {fileID: 0}
@@ -637,6 +643,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 12b68b8478a38064d85afc6d3754a721, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1193340829816115258, guid: 12b68b8478a38064d85afc6d3754a721, type: 3}
       propertyPath: m_Layer
       value: 2
@@ -815,6 +825,11 @@ MonoBehaviour:
   _material: 5
   _thicknessMultiplier: 1
   _part: 2
+--- !u!137 &1758994365136842612 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7745108037278365217, guid: 12b68b8478a38064d85afc6d3754a721, type: 3}
+  m_PrefabInstance: {fileID: 930817169533773483}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2465494912753621389 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -5846270692196909274, guid: 12b68b8478a38064d85afc6d3754a721, type: 3}
@@ -1513,6 +1528,11 @@ Animator:
 --- !u!4 &591145296576435665 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -2349476437193732044, guid: 2a36271ff18139b4ebae479764f05532, type: 3}
+  m_PrefabInstance: {fileID: 6291757528279549413}
+  m_PrefabAsset: {fileID: 0}
+--- !u!137 &3700051707942462403 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 7208549207106577958, guid: 2a36271ff18139b4ebae479764f05532, type: 3}
   m_PrefabInstance: {fileID: 6291757528279549413}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &5826084922473013774 stripped
