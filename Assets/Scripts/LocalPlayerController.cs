@@ -95,8 +95,6 @@ public class LocalPlayerController : NetworkBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        Debug.Log("Local Player Controller Start! " + netId);
-        
         if (isLocalPlayer)
         {
             _firstPersonRoot.gameObject.SetActive(true);
@@ -116,9 +114,18 @@ public class LocalPlayerController : NetworkBehaviour
             _thirdPersonRoot.gameObject.SetActive(true);
             Destroy(this);
         }
+
+        if (isServer)
+        {
+            _thirdPersonRoot.gameObject.SetActive(true);
+            // for dedicate server, this should be destroy
+            // Destroy(this);
+        }
     }
     private void Update()
     {
+        if (!isLocalPlayer) return;
+
         UpdateRotationInput();
         UpdateMovementInput();
         UpdateCrouchingInput();

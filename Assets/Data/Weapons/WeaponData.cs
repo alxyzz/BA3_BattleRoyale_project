@@ -26,8 +26,8 @@ public class WeaponData : ScriptableObject
     public WeaponType Type => _type;
     [SerializeField] private WeaponRangeType _rangeType;
     public WeaponRangeType RangeType => _rangeType;
-    [SerializeField] private float _effectiveRange;
-    public float EffectiveRange => _effectiveRange;
+    //[SerializeField] private float _effectiveRange;
+    //public float EffectiveRange => _effectiveRange;
     [SerializeField] private float _maxRange;
     public float MaxRange => _maxRange;
 
@@ -65,12 +65,29 @@ public class WeaponData : ScriptableObject
     public float FireSpread => _fireSpread;
 
     [Header("Damage")]
-    [SerializeField] private int _damageHead;
-    public int DamageHead => _damageHead;
-    [SerializeField] private int _damageBody;
-    public int DamageBody => _damageBody;
-    [SerializeField] private int _damageLeg;
-    public int DamageLeg => _damageLeg;
+    [SerializeField] private float _baseDamage;
+    [SerializeField] private float _dmgHeadMultiplier = 3.2f;
+    [SerializeField] private float _dmgBodyMultiplier = 0.9f;
+    [SerializeField] private float _dmgArmMultiplier = 1.0f;
+    [SerializeField] private float _dmgThighMultiplier = 0.7f;
+    [SerializeField] private float _dmgCalfMultiplier = 0.6f;
+    public float BaseDamage => _baseDamage;
+    public float DamageHead => _baseDamage * _dmgHeadMultiplier;
+    public float DamageBody => _baseDamage * _dmgBodyMultiplier;
+    public float DamageArm => _baseDamage * _dmgArmMultiplier;
+    public float DamageThigh => _baseDamage * _dmgThighMultiplier;
+    public float DamageCalf => _baseDamage * _dmgCalfMultiplier;
+    [SerializeField] private AnimationCurve _distanceAttenuation = AnimationCurve.EaseInOut(0, 1, 1, 0);
+    public float GetDistanceAttenuation(float distance)
+    {
+        return _distanceAttenuation.Evaluate(Mathf.Clamp01(distance / MaxRange));        
+    }
+    [Tooltip("WOOD, STONE, METAL, GLASS, WATER, HUMAN")]
+    [SerializeField] private float[] _PenetrationAttenuation = new float[6];
+    public float GetPenetrationAttenuation(PenetrableMaterial mat)
+    {
+        return _PenetrationAttenuation[(int)mat];
+    }
 
     [Header("Reload")]
     [SerializeField] private float _reloadMultiplier;

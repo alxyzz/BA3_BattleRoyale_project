@@ -72,4 +72,21 @@ public class UIManager : MonoBehaviour
     {
         instance._crosshair.SetFireSpread(pixel, duration);
     }
+
+    [Header("Statistics")]
+    [SerializeField] private Text _txtHealth;
+    [SerializeField] private Color _hpColor1 = Color.white;
+    [SerializeField] private Color _hpColor2 = Color.yellow;
+    [SerializeField] private Color _hpColor3 = Color.red;
+    [SerializeField] private Text _txtArmor;
+    public static void SetHealth(int val)
+    {
+        instance._txtHealth.text = val.ToString();
+        instance._txtHealth.color = val >= 50 ? instance._hpColor1 : 
+            (val >= 20 ? instance._hpColor2 : instance._hpColor3);
+    }
+    public static void SetArmor(int val)
+    {
+        instance._txtArmor.text = val.ToString();
+    }
 }
