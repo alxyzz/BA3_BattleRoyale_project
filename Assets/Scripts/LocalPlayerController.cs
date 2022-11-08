@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using UnityEngine;
 using Mirror;
 using System.Collections;
+using UnityEngine;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/guides/networkbehaviour
@@ -43,7 +42,7 @@ public class LocalPlayerController : NetworkBehaviour
     /// Called when the local player object has been set up.
     /// <para>This happens after OnStartClient(), as it is triggered by an ownership message from the server. This is an appropriate place to activate components or functionality that should only be active for the local player, such as cameras and input.</para>
     /// </summary>
-    public override void OnStartLocalPlayer() 
+    public override void OnStartLocalPlayer()
     {
     }
 
@@ -51,7 +50,7 @@ public class LocalPlayerController : NetworkBehaviour
     /// Called when the local player object is being stopped.
     /// <para>This happens before OnStopClient(), as it may be triggered by an ownership message from the server, or because the player object is being destroyed. This is an appropriate place to deactivate components or functionality that should only be active for the local player, such as cameras and input.</para>
     /// </summary>
-    public override void OnStopLocalPlayer() {}
+    public override void OnStopLocalPlayer() { }
 
     /// <summary>
     /// This is invoked on behaviours that have authority, based on context and <see cref="NetworkIdentity.hasAuthority">NetworkIdentity.hasAuthority</see>.
@@ -71,6 +70,8 @@ public class LocalPlayerController : NetworkBehaviour
     [Header("Components")]
     [SerializeField] private Transform _thirdPersonRoot;
     [SerializeField] private Transform _firstPersonRoot;
+    [SerializeField] private AudioSource _soundPlayer;
+
     public Vector3 FirstPersonForward => _firstPersonRoot.forward;
     [SerializeField] private Transform _firstPersonArm;
     private CharacterMovement _charaMovement;
@@ -79,6 +80,8 @@ public class LocalPlayerController : NetworkBehaviour
 
     [Header("Settings")]
     [SerializeField] private float _mouseSensitivity = 2.0f;
+    [SerializeField] private float _footStepDelay_run;
+    [SerializeField] private float _footStepDelay_walk;
 
     // [SerializeField] private Transform _gunRoot;
     public float Pitch { get; private set; }
@@ -88,6 +91,7 @@ public class LocalPlayerController : NetworkBehaviour
     {
         _charaMovement = GetComponent<CharacterMovement>();
         _playerState = GetComponent<PlayerState>();
+        _footstepCoroutine = FootstepLoop();
     }
 
     private void Start()
@@ -96,7 +100,7 @@ public class LocalPlayerController : NetworkBehaviour
         Cursor.visible = false;
 
         Debug.Log("Local Player Controller Start! " + netId);
-        
+
         if (isLocalPlayer)
         {
             _firstPersonRoot.gameObject.SetActive(true);
@@ -107,8 +111,11 @@ public class LocalPlayerController : NetworkBehaviour
             _firstPersonArm.SetParent(Camera.main.transform);
             LocalGame.LocalPlayer = gameObject;
 
+            walkingFootStepWait = new WaitForSecondsRealtime(_footStepDelay_run);
+            runningFootStepWait = new WaitForSecondsRealtime(_footStepDelay_walk);
+
             _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
-            _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };        
+            _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };
         }
         else
         {
@@ -116,7 +123,9 @@ public class LocalPlayerController : NetworkBehaviour
             _thirdPersonRoot.gameObject.SetActive(true);
             Destroy(this);
         }
+        
     }
+
 
 
     private void UpdateHandyDandyDebugQuitForEscape()
@@ -156,12 +165,78 @@ public class LocalPlayerController : NetworkBehaviour
         transform.rotation = Quaternion.Euler(0, Yaw, 0);
     }
 
+    #region Footsteps
+    private WaitForSecondsRealtime walkingFootStepWait;
+    private WaitForSecondsRealtime runningFootStepWait;
+    
+    public void PlayFootstep()
+    {
+        StartCoroutine(_footstepCoroutine);
+    }
+
+    private IEnumerator _footstepCoroutine;
+
+    public void StopFootstep()
+    {
+        StopCoroutine(_footstepCoroutine);
+    }
+
+
+
+
+    IEnumerator RestartFootstep()
+    {
+        yield return new WaitForSeconds(0.02f);
+        StopCoroutine("FootstepLoop");
+        StartCoroutine(_footstepCoroutine);
+    }
+    IEnumerator FootstepLoop()
+    {
+        bool walk = _charaMovement.IsWalking;
+        int b = 0;
+        while (true)
+        {
+            b++;
+            Debug.Log("FootStep #" + b);
+            if (_charaMovement.IsWalking)  yield return walkingFootStepWait; else yield return runningFootStepWait; //delay changeable in inspector
+            _soundPlayer.Stop();
+            _soundPlayer.PlayOneShot(GetRandomFootStep());
+            if (walk != _charaMovement.IsWalking)
+            {
+                StartCoroutine(RestartFootstep());
+            }
+        }
+    }
+    [SerializeField] private System.Collections.Generic.List<AudioClip> list_footsteps = new System.Collections.Generic.List<AudioClip>();
+    private AudioClip GetRandomFootStep()
+    {
+        return list_footsteps[Random.Range(0, list_footsteps.Count - 1)];
+    }
+    #endregion
     private void UpdateMovementInput()
     {
+        float axisH = Input.GetAxis("Horizontal"), axisV = Input.GetAxis("Vertical");
         _charaMovement.AddMovementInput(
             transform.rotation,
-            new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"))
+            new Vector2(axisH, axisV)
             );
+        if (axisV > 0 || axisH > 0)
+        {
+
+            if (timeToNextFootstep > 0)
+            {
+                timeToNextFootstep -= Time.deltaTime; Debug.Log("here");
+            }
+            else
+            {
+                PlayFootstep(); timeToNextFootstep = footstepDelay;
+            }
+        }
+        else
+        {
+            StopFootstep();
+        }
+
     }
 
     #region Crouch
@@ -192,15 +267,19 @@ public class LocalPlayerController : NetworkBehaviour
         }
     }
     #endregion
+    private float timeToNextFootstep = 0.0f;
+    public float footstepDelay;
 
     private void UpdateWalkingInput()
     {
+
         if (Input.GetButtonDown("Walk"))
         {
             _charaMovement.IsWalking = true;
         }
         else if (Input.GetButtonUp("Walk"))
         {
+
             _charaMovement.IsWalking = false;
         }
     }
@@ -251,9 +330,9 @@ public class LocalPlayerController : NetworkBehaviour
                 }
             }
         }
-        else if(null != _seeingInteractable)
+        else if (null != _seeingInteractable)
         {
-            
+
             _seeingInteractable.EndBeingSeen();
             _seeingInteractable = null;
         }

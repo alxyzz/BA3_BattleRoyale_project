@@ -11,4 +11,5 @@ public class LocalGame : MonoBehaviour
     }
 
     public static GameObject LocalPlayer { get; set; }
+    
 }
