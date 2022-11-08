@@ -38,13 +38,23 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         base.OnStartClient();
         Debug.Log("Player state start. Net ID : " + netId);
-        GameState.PlayerStates.Add(netId, this);
+        GameState.AddPlayer(this);
     }
     public override void OnStopClient()
     {
         base.OnStopClient();
         Debug.Log("Player state stop. Net ID : " + netId);
-        GameState.PlayerStates.Remove(netId);
+        GameState.RemovePlayer(this);
+    }
+    public override void OnStartLocalPlayer()
+    {
+        base.OnStartLocalPlayer();
+        _cUpdatePing = StartCoroutine(UpdatePing());
+    }
+    public override void OnStopLocalPlayer()
+    {
+        base.OnStopLocalPlayer();
+        StopCoroutine(_cUpdatePing);
     }
 
     private void Awake()
@@ -61,6 +71,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
         PickUpWeapon(new WeaponIdentityData(initData, initData.Ammo, initData.BackupAmmo));
     }
 
+
     [Header("Components")]
     [SerializeField] private Transform _tpSocketWeaponLeft;
     [SerializeField] private Transform _tpSocketWeaponRight;
@@ -76,8 +87,10 @@ public class PlayerState : NetworkBehaviour, IDamageable
 
     [SyncVar][HideInInspector] public string nickname;
     [SyncVar][HideInInspector] public int health;
-    [SyncVar][HideInInspector] public int kills;
+    [SyncVar(hook = nameof(OnKillsChanged))][HideInInspector] public int kills;
     [SyncVar(hook = nameof(OnBodyColourChanged))][HideInInspector] public Color bodyColour;
+
+    [SyncVar(hook = nameof(OnPingChanged))][HideInInspector] public int ping;
 
     // WeaponRangeType.SHORT = 0 ; WeaponRangeType.MEDIUM = 1 ; WeaponRangeType.LONG = 2
     [SyncVar][HideInInspector] public int curWpnIndex = -1;
@@ -331,6 +344,39 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         health = hp;
         UIManager.SetHealth(health);
+    }
+    #endregion
+
+    #region Statistics
+    public Action onPingChanged;
+    [Command]
+    private void CmdSetPing(int val)
+    {
+        ping = val;
+    }
+    private void OnPingChanged(int oldPing, int newPing)
+    {
+        onPingChanged?.Invoke();
+    }
+    Coroutine _cUpdatePing;
+    IEnumerator UpdatePing()
+    {
+        while (true)
+        {
+            CmdSetPing(Mathf.RoundToInt((float)(NetworkTime.rtt * 1000.0)));
+            yield return new WaitForSeconds(1.0f);
+        }
+    }
+
+    public Action onKillsChanged;
+    [Command]
+    private void CmdAddKill()
+    {
+        kills++;
+    }
+    private void OnKillsChanged(int oldKills, int newKills)
+    {
+        onKillsChanged?.Invoke();
     }
     #endregion
 
