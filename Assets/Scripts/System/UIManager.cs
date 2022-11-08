@@ -73,7 +73,7 @@ public class UIManager : MonoBehaviour
         instance._crosshair.SetFireSpread(pixel, duration);
     }
 
-    [Header("Statistics")]
+    [Header("Personal")]
     [SerializeField] private Text _txtHealth;
     [SerializeField] private Color _hpColor1 = Color.white;
     [SerializeField] private Color _hpColor2 = Color.yellow;
@@ -88,5 +88,16 @@ public class UIManager : MonoBehaviour
     public static void SetArmor(int val)
     {
         instance._txtArmor.text = val.ToString();
+    }
+
+    [Header("Statistics")]
+    [SerializeField] private UI_Panel_Statistics _statistics;
+    public static void SetStatisticsShown(bool shown)
+    {
+        instance._statistics.SetShown(shown);
+    }
+    public static void RefreshStatistics()
+    {
+        instance._statistics.Refresh();
     }
 }

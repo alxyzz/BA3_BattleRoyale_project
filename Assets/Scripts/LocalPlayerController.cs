@@ -109,7 +109,7 @@ public class LocalPlayerController : NetworkBehaviour
 
             _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
             _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };
-
+ 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
@@ -132,6 +132,7 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateFireInput();
         UpdateChangeWeaponInput();
         UpdateReloadInput();
+        UpdateShowStatisticsInput();
 
         CheckInteractable();
         // test for sync
@@ -295,6 +296,20 @@ public class LocalPlayerController : NetworkBehaviour
         if (Input.GetButtonDown("Reload"))
         {
             _playerState.StartReload();
+        }
+    }
+    #endregion
+
+    #region Statistics
+    private void UpdateShowStatisticsInput()
+    {
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            UIManager.SetStatisticsShown(true);
+        }
+        else if (Input.GetKeyUp(KeyCode.Tab))
+        {
+            UIManager.SetStatisticsShown(false);
         }
     }
     #endregion
