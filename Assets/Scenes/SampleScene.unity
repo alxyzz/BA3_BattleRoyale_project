@@ -1082,7 +1082,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 141eda493a4eac24db9d4802d27b34a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  errorsound: {fileID: 8300000, guid: 314e9761649ad0043a37696c34ddad0f, type: 3}
+  testSound: {fileID: 8300000, guid: 314e9761649ad0043a37696c34ddad0f, type: 3}
+  footStep: {fileID: 0}
+  list_footsteps:
+  - {fileID: 8300000, guid: 9efaa68e701258f43b0614bc0a26c866, type: 3}
+  - {fileID: 8300000, guid: d50aa2334b6e7c341b03eff7bf0e272a, type: 3}
+  - {fileID: 8300000, guid: e68c6c0303c96844d948a07bec02db22, type: 3}
+  - {fileID: 8300000, guid: f9abf19f6e798f3439eaa2cfecbfefaa, type: 3}
+  - {fileID: 8300000, guid: abe644f904b8e7043b3cd43285e77463, type: 3}
 --- !u!4 &704921086
 Transform:
   m_ObjectHideFlags: 0

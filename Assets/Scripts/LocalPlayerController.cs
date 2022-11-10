@@ -123,7 +123,7 @@ public class LocalPlayerController : NetworkBehaviour
             _thirdPersonRoot.gameObject.SetActive(true);
             Destroy(this);
         }
-        
+
     }
 
 
@@ -166,39 +166,36 @@ public class LocalPlayerController : NetworkBehaviour
     }
 
     #region Footsteps
+    private bool footstepsAreLooping = false;
     private WaitForSecondsRealtime walkingFootStepWait;
     private WaitForSecondsRealtime runningFootStepWait;
-    
     public void PlayFootstep()
     {
         StartCoroutine(_footstepCoroutine);
     }
-
     private IEnumerator _footstepCoroutine;
-
     public void StopFootstep()
     {
+        footstepsAreLooping = false;
         StopCoroutine(_footstepCoroutine);
     }
-
-
-
-
     IEnumerator RestartFootstep()
     {
-        yield return new WaitForSeconds(0.02f);
+        yield return new WaitForSeconds(0.01f);
         StopCoroutine("FootstepLoop");
         StartCoroutine(_footstepCoroutine);
     }
     IEnumerator FootstepLoop()
     {
+
+        footstepsAreLooping = true;
         bool walk = _charaMovement.IsWalking;
         int b = 0;
         while (true)
         {
             b++;
             Debug.Log("FootStep #" + b);
-            if (_charaMovement.IsWalking)  yield return walkingFootStepWait; else yield return runningFootStepWait; //delay changeable in inspector
+            if (_charaMovement.IsWalking) yield return walkingFootStepWait; else yield return runningFootStepWait; //delay changeable in inspector
             _soundPlayer.Stop();
             _soundPlayer.PlayOneShot(GetRandomFootStep());
             if (walk != _charaMovement.IsWalking)
@@ -207,10 +204,9 @@ public class LocalPlayerController : NetworkBehaviour
             }
         }
     }
-    [SerializeField] private System.Collections.Generic.List<AudioClip> list_footsteps = new System.Collections.Generic.List<AudioClip>();
     private AudioClip GetRandomFootStep()
     {
-        return list_footsteps[Random.Range(0, list_footsteps.Count - 1)];
+        return SoundList.instance.list_footsteps[Random.Range(0, SoundList.instance.list_footsteps.Count - 1)];
     }
     #endregion
     private void UpdateMovementInput()
@@ -220,16 +216,18 @@ public class LocalPlayerController : NetworkBehaviour
             transform.rotation,
             new Vector2(axisH, axisV)
             );
-        if (axisV > 0 || axisH > 0)
+        if (axisV != 0 && axisH != 0)
         {
-
-            if (timeToNextFootstep > 0)
+            if (footstepsAreLooping == false)
             {
-                timeToNextFootstep -= Time.deltaTime; Debug.Log("here");
-            }
-            else
-            {
-                PlayFootstep(); timeToNextFootstep = footstepDelay;
+                if (timeToNextFootstep > 0)
+                {
+                    timeToNextFootstep -= Time.deltaTime; Debug.Log("here");
+                }
+                else
+                {
+                    PlayFootstep(); timeToNextFootstep = (_charaMovement.IsWalking ? _footStepDelay_walk : _footStepDelay_run);
+                }
             }
         }
         else
@@ -268,7 +266,7 @@ public class LocalPlayerController : NetworkBehaviour
     }
     #endregion
     private float timeToNextFootstep = 0.0f;
-    public float footstepDelay;
+
 
     private void UpdateWalkingInput()
     {
