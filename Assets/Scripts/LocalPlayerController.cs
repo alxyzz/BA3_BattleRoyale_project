@@ -74,6 +74,9 @@ public class LocalPlayerController : NetworkBehaviour
 
     public Vector3 FirstPersonForward => _firstPersonRoot.forward;
     [SerializeField] private Transform _firstPersonArm;
+    [SerializeField] private SkinnedMeshRenderer _fpSMR;
+    [SerializeField] private SkinnedMeshRenderer _tpSMR;
+
     private CharacterMovement _charaMovement;
     public CharacterMovement CharaMovementComp => _charaMovement;
     private PlayerState _playerState;
@@ -96,31 +99,31 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-
-        Debug.Log("Local Player Controller Start! " + netId);
-
         if (isLocalPlayer)
         {
-            _firstPersonRoot.gameObject.SetActive(true);
-            _thirdPersonRoot.gameObject.SetActive(false);
+            _tpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+
+            //if (!isServer) // if the local client is not the host
+            //    _thirdPersonRoot.gameObject.SetActive(false);
+
             Camera.main.transform.SetParent(_firstPersonRoot);
             Camera.main.transform.localPosition = Vector3.zero;
             Camera.main.transform.localRotation = Quaternion.identity;
             _firstPersonArm.SetParent(Camera.main.transform);
-            LocalGame.LocalPlayer = gameObject;
 
             walkingFootStepWait = new WaitForSecondsRealtime(_footStepDelay_run);
             runningFootStepWait = new WaitForSecondsRealtime(_footStepDelay_walk);
 
             _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
             _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };
+ 
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
         else
         {
-            _firstPersonRoot.gameObject.SetActive(false);
-            _thirdPersonRoot.gameObject.SetActive(true);
+            _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+            // _firstPersonRoot.gameObject.SetActive(false);
             Destroy(this);
         }
 
@@ -137,7 +140,8 @@ public class LocalPlayerController : NetworkBehaviour
     }
     private void Update()
     {
-        UpdateHandyDandyDebugQuitForEscape();
+        if (!isLocalPlayer) return;
+
         UpdateRotationInput();
         UpdateMovementInput();
         UpdateCrouchingInput();
@@ -146,6 +150,7 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateFireInput();
         UpdateChangeWeaponInput();
         UpdateReloadInput();
+        UpdateShowStatisticsInput();
 
         CheckInteractable();
         // test for sync
@@ -377,6 +382,20 @@ public class LocalPlayerController : NetworkBehaviour
         if (Input.GetButtonDown("Reload"))
         {
             _playerState.StartReload();
+        }
+    }
+    #endregion
+
+    #region Statistics
+    private void UpdateShowStatisticsInput()
+    {
+        if (Input.GetKeyDown(KeyCode.Tab))
+        {
+            UIManager.SetStatisticsShown(true);
+        }
+        else if (Input.GetKeyUp(KeyCode.Tab))
+        {
+            UIManager.SetStatisticsShown(false);
         }
     }
     #endregion

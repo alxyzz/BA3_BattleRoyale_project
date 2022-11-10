@@ -10,8 +10,7 @@ using Mirror;
  * The Game Mode is not replicated to any remote clients that join in a multiplayer game; it exists only on the server,
  * so local clients cannot access the actual instance of Game Mode and check its variables to see what has changed as the game progresses.
  */
-public class GameMode : NetworkManager
+public class GameMode : MonoBehaviour
 {
-
 
 }

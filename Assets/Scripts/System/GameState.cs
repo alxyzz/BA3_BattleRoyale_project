@@ -19,13 +19,28 @@ public class GameState : NetworkBehaviour
     private void Awake()
     {
         instance = this;
+        
     }
 
     [SyncVar][HideInInspector] public bool hasBegun;
     public static bool HasBegun => instance.hasBegun;
 
-    private Dictionary<uint, PlayerState> _playerStates = new Dictionary<uint, PlayerState>();
-    public static Dictionary<uint, PlayerState> PlayerStates => instance._playerStates;
-
-    
+    private List<PlayerState> _playerStates = new List<PlayerState>();
+    public static List<PlayerState> PlayerStates => instance._playerStates;
+    public static void AddPlayer(PlayerState ps)
+    {
+        if (ps != null && !PlayerStates.Contains(ps))
+        {
+            PlayerStates.Add(ps);
+            UIManager.RefreshStatistics();
+        }
+    }
+    public static void RemovePlayer(PlayerState ps)
+    {
+        if (ps != null && PlayerStates.Contains(ps))
+        {
+            PlayerStates.Remove(ps);
+            UIManager.RefreshStatistics();
+        }
+    }
 }

@@ -67,6 +67,13 @@ ModelImporter:
         floatParameter: 0
         intParameter: 1
         messageOptions: 0
+      - time: 0.55609703
+        functionName: ReloadAttachToHand
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: -1
+        messageOptions: 0
       - time: 0.5688029
         functionName: Reload
         data: 
@@ -80,13 +87,6 @@ ModelImporter:
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
         intParameter: 0
-        messageOptions: 0
-      - time: 0.5829787
-        functionName: ReloadAttachToHand
-        data: 
-        objectReferenceParameter: {instanceID: 0}
-        floatParameter: 0
-        intParameter: -1
         messageOptions: 0
       transformMask: []
       maskType: 3
