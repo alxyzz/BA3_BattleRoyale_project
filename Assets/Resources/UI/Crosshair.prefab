@@ -401,3 +401,9 @@ MonoBehaviour:
   _right: {fileID: 6484584694689706641}
   _up: {fileID: 6484584694302059758}
   _down: {fileID: 6484584695329429481}
+  _defaultFireSpreadCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
