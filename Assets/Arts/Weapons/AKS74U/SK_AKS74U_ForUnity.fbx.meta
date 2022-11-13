@@ -8,12 +8,12 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_762x39_Empty
-    second: {fileID: 2100000, guid: 98fb5ab3d2a9234489d2e0ec3ade3647, type: 2}
+    second: {fileID: 2100000, guid: ca96988ebf417744b9ba8d3e6ddf3324, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: M_KA74U
-    second: {fileID: 2100000, guid: 98fb5ab3d2a9234489d2e0ec3ade3647, type: 2}
+    second: {fileID: 2100000, guid: ca96988ebf417744b9ba8d3e6ddf3324, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
