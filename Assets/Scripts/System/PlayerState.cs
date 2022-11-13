@@ -83,6 +83,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     private readonly int _aFire = Animator.StringToHash("Fire");
     private readonly int _aReload = Animator.StringToHash("Reload");
     private readonly int _aUnholster = Animator.StringToHash("Unholster");
+    private readonly int _aInspect = Animator.StringToHash("Inspect");
 
 
     [SyncVar][HideInInspector] public string nickname;
@@ -159,6 +160,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         if (CurrentWeaponInHand.CanFireBurst())
         {
+            EndInspect();
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
             CurrentWeaponInHand.FireBurst(out List<Vector3> directions);
@@ -305,6 +307,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         if (CurrentWeaponInHand.CanReload())
         {
+            EndInspect();
             _charaAnimHandler.FpSetTrigger(_aReload);
             _charaAnimHandler.CmdTpSetTrigger(_aReload);
             CurrentWeaponInHand.StartReload();
@@ -380,4 +383,18 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     #endregion
 
+    #region Inspect
+    public void Inspect()
+    {
+        if (CurrentWeaponInHand.CanInspect())
+        {
+            CurrentWeaponInHand.SetInspect(true);
+            _charaAnimHandler.FpSetTrigger(_aInspect);
+        }
+    }
+    public void EndInspect()
+    {
+        CurrentWeaponInHand.SetInspect(false);
+    }
+    #endregion
 }

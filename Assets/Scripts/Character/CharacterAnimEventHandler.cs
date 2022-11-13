@@ -6,7 +6,7 @@ public class CharacterAnimEventHandler : MonoBehaviour
 {
     // private Animator _animator;
     protected PlayerState _playerState;
-    private void Awake()
+    protected virtual void Awake()
     {
         // _animator = GetComponent<Animator>();
         _playerState = GetComponentInParent<PlayerState>();

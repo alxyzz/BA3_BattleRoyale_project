@@ -133,6 +133,7 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateChangeWeaponInput();
         UpdateReloadInput();
         UpdateShowStatisticsInput();
+        UpdateInspectInput();
 
         CheckInteractable();
         // test for sync
@@ -310,6 +311,20 @@ public class LocalPlayerController : NetworkBehaviour
         else if (Input.GetKeyUp(KeyCode.Tab))
         {
             UIManager.SetStatisticsShown(false);
+        }
+    }
+    #endregion
+
+    #region Inspect
+    private void UpdateInspectInput()
+    {
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            _playerState.Inspect();
+        }
+        else if (Input.GetKeyUp(KeyCode.F))
+        {
+            GetComponentInChildren<FpAnimEventHandler>().ResetInspectMultiplier();
         }
     }
     #endregion
