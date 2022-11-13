@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4000013876160986}
   - component: {fileID: 33000010231696242}
   - component: {fileID: 23000013093344526}
-  - component: {fileID: 64000011955652080}
+  - component: {fileID: 64000011706813114}
   m_Layer: 0
   m_Name: Cargo_container_v1_LD2open
   m_TagString: Untagged
@@ -84,7 +84,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &64000011955652080
+--- !u!64 &64000011706813114
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -109,7 +109,7 @@ GameObject:
   - component: {fileID: 4000013301082504}
   - component: {fileID: 33000010596253882}
   - component: {fileID: 23000013817591240}
-  - component: {fileID: 65000011769987596}
+  - component: {fileID: 65000012463568912}
   m_Layer: 0
   m_Name: Cargo_container_v1_LD2doorL
   m_TagString: Untagged
@@ -182,7 +182,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000011769987596
+--- !u!65 &65000012463568912
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -206,7 +206,7 @@ GameObject:
   - component: {fileID: 4000012328629498}
   - component: {fileID: 33000012801953412}
   - component: {fileID: 23000010716011632}
-  - component: {fileID: 65000012754014162}
+  - component: {fileID: 65000014266570106}
   m_Layer: 0
   m_Name: Cargo_container_v1_LD2doorR
   m_TagString: Untagged
@@ -279,7 +279,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000012754014162
+--- !u!65 &65000014266570106
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

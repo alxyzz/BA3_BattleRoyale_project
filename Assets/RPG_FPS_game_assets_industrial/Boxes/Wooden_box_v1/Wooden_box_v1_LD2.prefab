@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4000012348412654}
   - component: {fileID: 33000011027782840}
   - component: {fileID: 23000010768947382}
-  - component: {fileID: 65000013648367982}
+  - component: {fileID: 65000012831585980}
   m_Layer: 0
   m_Name: Wooden_box_v1_LD2
   m_TagString: Untagged
@@ -84,7 +84,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &65000013648367982
+--- !u!65 &65000012831585980
 BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
