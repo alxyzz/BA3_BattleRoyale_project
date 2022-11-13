@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 2258259429533691904}
   - component: {fileID: 7085458860252933508}
   - component: {fileID: 7751553233388651996}
+  - component: {fileID: 4686299907043721433}
   m_Layer: 2
   m_Name: PlayerNew
   m_TagString: Untagged
@@ -140,6 +141,7 @@ MonoBehaviour:
   health: 0
   kills: 0
   bodyColour: {r: 0, g: 0, b: 0, a: 0}
+  ping: 0
   curWpnIndex: -1
   curWpnDbIndex: -1
 --- !u!143 &2258259429533691904
@@ -200,6 +202,25 @@ MonoBehaviour:
   syncInterval: 0.1
   _tpAnimator: {fileID: 6737517951637101370}
   _fpAnimator: {fileID: 448747576150112372}
+--- !u!114 &4686299907043721433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 140634701653634783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb03705c4df5e014a972204594c62f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  syncMode: 0
+  syncInterval: 0.1
+  connectionID: 0
+  playerIDNumber: 0
+  playerSteamID: 0
+  playerName: 
+  ready: 0
 --- !u!1 &790563354303075508
 GameObject:
   m_ObjectHideFlags: 0

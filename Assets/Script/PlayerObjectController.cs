@@ -12,14 +12,14 @@ public class PlayerObjectController : NetworkBehaviour
     [SyncVar] public ulong playerSteamID;
     [SyncVar(hook = nameof(PlayerNameUpdate))] public string playerName;
     [SyncVar(hook = nameof(PlayerReadyUpdate))] public bool ready;
-    private CustomNetworkManager manager;
+    private MyNetworkManager manager;
 
     private void Start()
     {
         DontDestroyOnLoad(this.gameObject);
     }
 
-    private CustomNetworkManager Manager
+    private MyNetworkManager Manager
     {
         get
         {
@@ -27,7 +27,7 @@ public class PlayerObjectController : NetworkBehaviour
             {
                 return manager;
             }
-            return manager = CustomNetworkManager.singleton as CustomNetworkManager;
+            return manager = MyNetworkManager.singleton as MyNetworkManager;
         }
     }
 

@@ -2,6 +2,8 @@ using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Mirror;
+using System.Collections.Generic;
+using Steamworks;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/components/network-manager
@@ -157,6 +159,14 @@ public class MyNetworkManager : NetworkManager
     /// <param name="conn">Connection from client.</param>
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
+        if (SceneManager.GetActiveScene().name == "Lobby")
+        {
+            PlayerObjectController GamePlayerInstance = Instantiate(GamePlayerPrefab);
+            GamePlayerInstance.connectionID = conn.connectionId;
+            GamePlayerInstance.playerIDNumber = GamePlayers.Count + 1;
+            GamePlayerInstance.playerSteamID = (ulong)SteamMatchmaking.GetLobbyMemberByIndex((CSteamID)SteamLobby.Instance.CurrentLobbyId, GamePlayers.Count);
+            NetworkServer.AddPlayerForConnection(conn, GamePlayerInstance.gameObject);
+        }
         base.OnServerAddPlayer(conn);
     }
 
@@ -253,4 +263,15 @@ public class MyNetworkManager : NetworkManager
     public override void OnStopClient() { }
 
     #endregion
+
+
+    [SerializeField] private PlayerObjectController GamePlayerPrefab;
+    public List<PlayerObjectController> GamePlayers { get; } = new List<PlayerObjectController>();
+
+    
+
+    public void StartGame(string sceneName)
+    {
+        ServerChangeScene(sceneName);
+    }
 }

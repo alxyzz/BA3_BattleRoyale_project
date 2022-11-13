@@ -26,9 +26,9 @@ public class LobbyController : MonoBehaviour
     public TMP_Text readyButtonText;
 
 
-    private CustomNetworkManager manager;
+    private MyNetworkManager manager;
 
-    private CustomNetworkManager Manager
+    private MyNetworkManager Manager
     {
         get
         {
@@ -36,7 +36,7 @@ public class LobbyController : MonoBehaviour
             {
                 return manager;
             }
-            return manager = CustomNetworkManager.singleton as CustomNetworkManager;
+            return manager = MyNetworkManager.singleton as MyNetworkManager;
         }
 
     }
