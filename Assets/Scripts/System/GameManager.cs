@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
     }
     [Header("Weapon")]
     [SerializeField] private List<WeaponData> _wpnDatabase;
+
     public static WeaponData GetWeaponData(int index)
     {
         return instance._wpnDatabase[index];

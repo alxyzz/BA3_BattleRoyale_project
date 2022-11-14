@@ -9,7 +9,7 @@ using UnityEngine;
 
 // NOTE: Do not put objects in DontDestroyOnLoad (DDOL) in Awake.  You can do that in Start instead.
 
-public class LocalPlayerController : NetworkBehaviour
+public class LocalPlayerController : NetworkBehaviour, IObserver
 {
     #region Start & Stop Callbacks
 
@@ -83,9 +83,6 @@ public class LocalPlayerController : NetworkBehaviour
 
     [Header("Settings")]
     [SerializeField] private float _mouseSensitivity = 2.0f;
-    [SerializeField] private float _footStepDelay_run;
-    [SerializeField] private float _footStepDelay_walk;
-
     // [SerializeField] private Transform _gunRoot;
     public float Pitch { get; private set; }
     public float Yaw { get; private set; }
@@ -94,11 +91,13 @@ public class LocalPlayerController : NetworkBehaviour
     {
         _charaMovement = GetComponent<CharacterMovement>();
         _playerState = GetComponent<PlayerState>();
-        _footstepCoroutine = FootstepLoop();
+        _soundPlayer = GetComponent<AudioSource>();
+       
     }
 
     private void Start()
     {
+        _charaMovement.Attach(this);
         if (isLocalPlayer)
         {
             _tpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
@@ -111,12 +110,6 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.localRotation = Quaternion.identity;
             _firstPersonArm.SetParent(Camera.main.transform);
 
-            walkingFootStepWait = new WaitForSecondsRealtime(_footStepDelay_run);
-            runningFootStepWait = new WaitForSecondsRealtime(_footStepDelay_walk);
-
-            _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
-            _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };
- 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
@@ -172,48 +165,62 @@ public class LocalPlayerController : NetworkBehaviour
     }
 
     #region Footsteps
-    private bool footstepsAreLooping = false;
-    private WaitForSecondsRealtime walkingFootStepWait;
-    private WaitForSecondsRealtime runningFootStepWait;
-    public void PlayFootstep()
+    private Coroutine _footstepCoroutine;
+    [SerializeField] private float footstepInterval_walking;
+    [SerializeField] private float footstepInterval_running;
+    private IObserver _footstepObserver;
+    private bool CR_running;
+    private float timeToNextFootstep = 0.0f;
+
+    public void UpdateState(ISubject subject)
     {
-        StartCoroutine(_footstepCoroutine);
-    }
-    private IEnumerator _footstepCoroutine;
-    public void StopFootstep()
-    {
-        footstepsAreLooping = false;
-        StopCoroutine(_footstepCoroutine);
-    }
-    IEnumerator RestartFootstep()
-    {
-        yield return new WaitForSeconds(0.01f);
-        StopCoroutine("FootstepLoop");
-        StartCoroutine(_footstepCoroutine);
+        CR_running = !CR_running;
+        if (CR_running)
+        {
+            Debug.Log("Started moving. Enabling foosteps.");
+            StopCoroutine("FootstepLoop");
+            _footstepCoroutine = StartCoroutine("FootstepLoop");
+        }
+        else
+        {
+            Debug.Log("Stopped moving. Disabling foosteps.");
+            StopCoroutine("FootstepLoop");
+        }
+        
     }
     IEnumerator FootstepLoop()
     {
-
-        footstepsAreLooping = true;
-        bool walk = _charaMovement.IsWalking;
-        int b = 0;
+        CR_running = true;
         while (true)
         {
+            
+            int b = 0;
+
             b++;
             Debug.Log("FootStep #" + b);
-            if (_charaMovement.IsWalking) yield return walkingFootStepWait; else yield return runningFootStepWait; //delay changeable in inspector
-            _soundPlayer.Stop();
-            _soundPlayer.PlayOneShot(GetRandomFootStep());
-            if (walk != _charaMovement.IsWalking)
-            {
-                StartCoroutine(RestartFootstep());
-            }
+
+            NotifyServerOfFootstep(); //signal goes from THIS client -> server -> all clients, playing the footstep for everyone.
+
+            if (_charaMovement.IsWalking) yield return new WaitForSecondsRealtime(footstepInterval_walking); else yield return new WaitForSecondsRealtime(footstepInterval_running); //delay changeable in inspector
         }
     }
-    private AudioClip GetRandomFootStep()
+
+    [Command]
+    public void NotifyServerOfFootstep()
     {
-        return SoundList.instance.list_footsteps[Random.Range(0, SoundList.instance.list_footsteps.Count - 1)];
+        PlayFootStepForEveryone();
     }
+
+    [ClientRpc]
+    public void PlayFootStepForEveryone()
+    {//every player is currently visible from every client
+     //but in the future, if we are to change that, we need to have a pool of sound playing empty gameobject so we can simply move that one to the position of the player and play a footstep there on demand without loading the player in if he's too far. in example, a sniper somewhere far on the map. but otherwise we can simply play sounds from their location.
+
+        _soundPlayer.Stop();
+        _soundPlayer.PlayOneShot(SoundList.GetRandomFootstep());
+    }
+
+    
     #endregion
     private void UpdateMovementInput()
     {
@@ -222,25 +229,6 @@ public class LocalPlayerController : NetworkBehaviour
             transform.rotation,
             new Vector2(axisH, axisV)
             );
-        if (axisV != 0 && axisH != 0)
-        {
-            if (footstepsAreLooping == false)
-            {
-                if (timeToNextFootstep > 0)
-                {
-                    timeToNextFootstep -= Time.deltaTime; Debug.Log("here");
-                }
-                else
-                {
-                    PlayFootstep(); timeToNextFootstep = (_charaMovement.IsWalking ? _footStepDelay_walk : _footStepDelay_run);
-                }
-            }
-        }
-        else
-        {
-            StopFootstep();
-        }
-
     }
 
     #region Crouch
@@ -271,9 +259,6 @@ public class LocalPlayerController : NetworkBehaviour
         }
     }
     #endregion
-    private float timeToNextFootstep = 0.0f;
-
-
     private void UpdateWalkingInput()
     {
 

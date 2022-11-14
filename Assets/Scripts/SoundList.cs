@@ -1,55 +1,41 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class SoundList : MonoBehaviour
 {
-    
 
-    public static SoundList instance;
+
+    private static SoundList instance;
     private void Awake()
     {
+        if (null != instance)
+        {
+            Destroy(gameObject);
+            return;
+        }
         instance = this;
+        DontDestroyOnLoad(gameObject);
     }
+    struct namedAudioClip
+    {
+        public string name;
+        public AudioClip soundclip;
+    }
+    [SerializeField] private List<namedAudioClip> _genericAudioDatabase;
+    [SerializeField] private List<AudioClip> _footsteps;
+    public static AudioClip GetSound(string soundName)
+    {
 
-    #region Sound References
-
-    public AudioClip testSound;
-    public System.Collections.Generic.List<AudioClip> list_footsteps = new System.Collections.Generic.List<AudioClip>();
-
-    #endregion
-
-
-    //public AudioClip GetSound(SoundData b)
-    //{
-    //    return b.Get();
-    //}
+        return instance._genericAudioDatabase.Where(i => i.name == soundName).FirstOrDefault().soundclip; ;
+    }
+    public static AudioClip GetRandomFootstep()
+    {
+        Debug.Log("got random footstep");
+        return instance._footsteps[UnityEngine.Random.Range(0, instance._footsteps.Count - 1)];
+    }
 }
 
 
-//public class SoundData
-//{
-//    private AudioClip sound;
-//    private string filepath;
-//    public AudioClip Get()
-//    {//load on initialization/demand.
-//        if (sound == null)
-//        {
-//            sound = (AudioClip)Resources.Load(filepath);
-//        }
-//        Debug.Log("GetSound(): returned sound " + sound.name);
-//        return sound;
-//    }
-//    public SoundData(string fl)
-//    {
-//        filepath = fl;
-//    }
-//}
-
-
-//class s_fire_ak47 : SoundData
-//{
-//    public s_fire_ak47(string fl) : base(fl)
-//    {
-
-//    }
-//}
 
