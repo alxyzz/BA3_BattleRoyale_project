@@ -17,6 +17,17 @@ public class UI_Panel_Inventory : UI_Widget
         _currentIndex = -1;
         _hasShown = false;
         RenderOpacity = 0;
+        StartCoroutine(DelayInit());
+    }
+    private IEnumerator DelayInit()
+    {
+        yield return new WaitForEndOfFrame();
+        yield return new WaitForEndOfFrame();
+        foreach (var item in _slots)
+        {
+            item.InitPosition();
+        }
+        UI_GameHUD.SetUIEnabled(false);
     }
     public void SetNewWeapon(int index, string newName)
     {

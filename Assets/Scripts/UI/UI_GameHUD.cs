@@ -15,7 +15,7 @@ public class UI_GameHUD : MonoBehaviour
     private void Start()
     {
         ClearInteractionHint();
-        SetUIEnabled(false);
+        // SetUIEnabled(false);
     }
 
     [Header("Countdown")]

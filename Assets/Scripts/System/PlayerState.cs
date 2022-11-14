@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using static UnityEditor.Progress;
 
 public class RaycastHitComparer : IComparer<RaycastHit>
 {
@@ -441,12 +442,14 @@ public class PlayerState : NetworkBehaviour, IDamageable
             _charaAnimHandler.CmdTpSetTrigger(Animator.StringToHash("Dead"));
             Destroy(_curWpnObj);
             GetComponent<LocalPlayerController>().Die();
-            foreach (var item in inventoryWeapons)
+            for (int i = 0; i < inventoryWeapons.Length; i++)
             {
-                ThrowWeapon(item);
+                if (null != inventoryWeapons[i])
+                {
+                    ThrowWeapon(inventoryWeapons[i]);
+                }
             }
         }
-
         onDied?.Invoke();
     }
 }
