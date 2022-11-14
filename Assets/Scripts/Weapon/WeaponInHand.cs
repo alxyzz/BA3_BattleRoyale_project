@@ -114,6 +114,7 @@ public class WeaponInHand : MonoBehaviour
 
     protected virtual void HitScan(out List<Vector3> directions)
     {
+        RaycastHit[] hits = new RaycastHit[10];
         Vector3 dir = RecoilRot * _playerCtrl.FirstPersonForward;
         Vector3 center = Camera.main.transform.position + dir;
         float r = Random.Range(0f, _identity.Data.FireSpread) * _playerCtrl.CharaMovementComp.SpreadMultiplier;

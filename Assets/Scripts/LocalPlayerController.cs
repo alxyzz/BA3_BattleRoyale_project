@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using UnityEngine;
 using Mirror;
 using System.Collections;
+using UnityEngine;
 using UnityEngine.Animations;
 using Unity.VisualScripting;
 //using UnityEngine.UIElements;
@@ -13,7 +12,7 @@ using Unity.VisualScripting;
 
 // NOTE: Do not put objects in DontDestroyOnLoad (DDOL) in Awake.  You can do that in Start instead.
 
-public class LocalPlayerController : NetworkBehaviour
+public class LocalPlayerController : NetworkBehaviour, IObserver
 {
     #region Start & Stop Callbacks
 
@@ -46,7 +45,7 @@ public class LocalPlayerController : NetworkBehaviour
     /// Called when the local player object has been set up.
     /// <para>This happens after OnStartClient(), as it is triggered by an ownership message from the server. This is an appropriate place to activate components or functionality that should only be active for the local player, such as cameras and input.</para>
     /// </summary>
-    public override void OnStartLocalPlayer() 
+    public override void OnStartLocalPlayer()
     {
     }
 
@@ -54,7 +53,7 @@ public class LocalPlayerController : NetworkBehaviour
     /// Called when the local player object is being stopped.
     /// <para>This happens before OnStopClient(), as it may be triggered by an ownership message from the server, or because the player object is being destroyed. This is an appropriate place to deactivate components or functionality that should only be active for the local player, such as cameras and input.</para>
     /// </summary>
-    public override void OnStopLocalPlayer() {}
+    public override void OnStopLocalPlayer() { }
 
     /// <summary>
     /// This is invoked on behaviours that have authority, based on context and <see cref="NetworkIdentity.hasAuthority">NetworkIdentity.hasAuthority</see>.
@@ -74,6 +73,8 @@ public class LocalPlayerController : NetworkBehaviour
     [Header("Components")]
     [SerializeField] private Transform _thirdPersonRoot;
     [SerializeField] private Transform _firstPersonRoot;
+    [SerializeField] private AudioSource _soundPlayer;
+
     public Vector3 FirstPersonForward => _firstPersonRoot.forward;
     [SerializeField] private Transform _firstPersonArm;
     [SerializeField] private SkinnedMeshRenderer _fpSMR;
@@ -85,7 +86,6 @@ public class LocalPlayerController : NetworkBehaviour
 
     [Header("Settings")]
     [SerializeField] private float _mouseSensitivity = 2.0f;
-
     // [SerializeField] private Transform _gunRoot;
     public float Pitch { get; private set; }
     public float Yaw { get; private set; }
@@ -94,11 +94,14 @@ public class LocalPlayerController : NetworkBehaviour
     {
         _charaMovement = GetComponent<CharacterMovement>();
         _playerState = GetComponent<PlayerState>();
+        _soundPlayer = GetComponent<AudioSource>();
+       
     }
 
     private void Start()
     {
         _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+        _charaMovement.Attach(this);
         if (isLocalPlayer)
         {
             _tpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
@@ -111,9 +114,6 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.localRotation = Quaternion.identity;
             _firstPersonArm.SetParent(Camera.main.transform);
 
-            _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
-            _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };
- 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
@@ -122,6 +122,17 @@ public class LocalPlayerController : NetworkBehaviour
             // _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
             // _firstPersonRoot.gameObject.SetActive(false);
             Destroy(this);
+        }
+
+    }
+
+
+
+    private void UpdateHandyDandyDebugQuitForEscape()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
         }
     }
     public void LocalStartGame()
@@ -168,11 +179,70 @@ public class LocalPlayerController : NetworkBehaviour
         transform.rotation = Quaternion.Euler(0, Yaw, 0);
     }
 
+    #region Footsteps
+    private Coroutine _footstepCoroutine;
+    [SerializeField] private float footstepInterval_walking;
+    [SerializeField] private float footstepInterval_running;
+    private IObserver _footstepObserver;
+    private bool CR_running;
+    private float timeToNextFootstep = 0.0f;
+
+    public void UpdateState(ISubject subject)
+    {
+        CR_running = !CR_running;
+        if (CR_running)
+        {
+            Debug.Log("Started moving. Enabling foosteps.");
+            StopCoroutine("FootstepLoop");
+            _footstepCoroutine = StartCoroutine("FootstepLoop");
+        }
+        else
+        {
+            Debug.Log("Stopped moving. Disabling foosteps.");
+            StopCoroutine("FootstepLoop");
+        }
+        
+    }
+    IEnumerator FootstepLoop()
+    {
+        CR_running = true;
+        while (true)
+        {
+            
+            int b = 0;
+
+            b++;
+            Debug.Log("FootStep #" + b);
+
+            NotifyServerOfFootstep(); //signal goes from THIS client -> server -> all clients, playing the footstep for everyone.
+
+            if (_charaMovement.IsWalking) yield return new WaitForSecondsRealtime(footstepInterval_walking); else yield return new WaitForSecondsRealtime(footstepInterval_running); //delay changeable in inspector
+        }
+    }
+
+    [Command]
+    public void NotifyServerOfFootstep()
+    {
+        PlayFootStepForEveryone();
+    }
+
+    [ClientRpc]
+    public void PlayFootStepForEveryone()
+    {//every player is currently visible from every client
+     //but in the future, if we are to change that, we need to have a pool of sound playing empty gameobject so we can simply move that one to the position of the player and play a footstep there on demand without loading the player in if he's too far. in example, a sniper somewhere far on the map. but otherwise we can simply play sounds from their location.
+
+        _soundPlayer.Stop();
+        _soundPlayer.PlayOneShot(SoundList.GetRandomFootstep());
+    }
+
+    
+    #endregion
     private void UpdateMovementInput()
     {
+        float axisH = Input.GetAxis("Horizontal"), axisV = Input.GetAxis("Vertical");
         _charaMovement.AddMovementInput(
             transform.rotation,
-            new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"))
+            new Vector2(axisH, axisV)
             );
     }
 
@@ -204,15 +274,16 @@ public class LocalPlayerController : NetworkBehaviour
         }
     }
     #endregion
-
     private void UpdateWalkingInput()
     {
+
         if (Input.GetButtonDown("Walk"))
         {
             _charaMovement.IsWalking = true;
         }
         else if (Input.GetButtonUp("Walk"))
         {
+
             _charaMovement.IsWalking = false;
         }
     }
@@ -263,9 +334,9 @@ public class LocalPlayerController : NetworkBehaviour
                 }
             }
         }
-        else if(null != _seeingInteractable)
+        else if (null != _seeingInteractable)
         {
-            
+
             _seeingInteractable.EndBeingSeen();
             _seeingInteractable = null;
         }

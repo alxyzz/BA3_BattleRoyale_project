@@ -294,6 +294,17 @@ public class PlayerState : NetworkBehaviour, IDamageable
             }
         }
     }
+    [Command]
+    public void GetDamaged(PlayerState who, int damage, string weaponName, PlayerState attacker) //use null for the last two if the damage was environmental
+    {
+        string log = "";
+        bool? b = null;
+        if (weaponName != null && weaponName != "" && attacker != null) //not environmental damage)
+        {
+            b = true;
+        }
+        log += "Player " + who.nickname + " was damaged for " + damage + " HP by " + b ?? (attacker + "'s " + weaponName + ".") ?? "their own foolishness.";
+    }
 
     public void EquipScroll(int val)
     {

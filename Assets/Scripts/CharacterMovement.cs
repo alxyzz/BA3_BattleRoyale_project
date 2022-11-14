@@ -1,13 +1,10 @@
-using System.Collections;
+using Mirror;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Mirror;
-using Newtonsoft.Json.Linq;
-using System;
-using Unity.VisualScripting;
 
 [RequireComponent(typeof(CharacterController))]
-public class CharacterMovement : NetworkBehaviour
+public class CharacterMovement : NetworkBehaviour, ISubject
 {
     // [Header("Components")]
     // [SerializeField] private Animator _firstPersonAnimator;
@@ -15,7 +12,7 @@ public class CharacterMovement : NetworkBehaviour
     private CharacterAnimHandler _charaAnimHandler;
     private CharacterController _charaCtrl;
     private PlayerState _playerState;
-
+    private List<IObserver> _footStepObservers = new List<IObserver>();
     private readonly int _aSpeedLevel = Animator.StringToHash("SpeedLevel");
     private readonly int _aMovementMultiplier = Animator.StringToHash("MovementMultiplier");
 
@@ -24,6 +21,7 @@ public class CharacterMovement : NetworkBehaviour
     private readonly int _aIsCrouch = Animator.StringToHash("IsCrouch");
     private readonly int _aIsInAir = Animator.StringToHash("IsInAir");
 
+    bool _movedPreviously;// device input preceding the last one
     Vector2 _lastMovementRawInput; // device input
     Vector3 _lastMovementInput; // input converted to world space
 
@@ -36,6 +34,7 @@ public class CharacterMovement : NetworkBehaviour
     [SerializeField] private float _maxCrouchSpeed = 1.68f;
     private Vector3 _moveVelocity = Vector3.zero;
     private Vector3 _inAirVelocity = Vector3.zero;
+    
     public float DesiredSpeed
     {
         get
@@ -76,6 +75,7 @@ public class CharacterMovement : NetworkBehaviour
         _charaAnimHandler = GetComponent<CharacterAnimHandler>();
         _charaCtrl = GetComponent<CharacterController>();
         _playerState = GetComponent<PlayerState>();
+        
     }
 
     private void Update()
@@ -87,15 +87,37 @@ public class CharacterMovement : NetworkBehaviour
 
         // Update movement
         Vector3 targetMove = _lastMovementInput * DesiredSpeed;
+
         if (IsOnGround)
         {
             _moveVelocity = targetMove;
+
         }
         else if (_lastMovementInput != Vector3.zero)
-        {      
+        {
             _moveVelocity = Vector3.Lerp(_moveVelocity, targetMove, IsOnGround ? 1 : _airControl);
+            
         }
         _charaCtrl.Move(_moveVelocity * Time.deltaTime);
+
+
+
+        //footsteps
+        if (_lastMovementInput != Vector3.zero && !_movedPreviously)
+        {
+
+            Notify();
+            // _movedPreviously = true;
+            _movedPreviously = true;
+
+        }
+        else if (_lastMovementInput == Vector3.zero && _movedPreviously == true)
+        {
+            Notify();
+            _movedPreviously = false;
+
+        }
+        ////end footsteps
 
         // Update jumping
         if (_charaCtrl.isGrounded && _inAirVelocity.y < 0)
@@ -111,7 +133,25 @@ public class CharacterMovement : NetworkBehaviour
         // Update Crosshair
         UpdateCrosshairSpread();
     }
+    private void FixedUpdate()
+    {
+        ////footsteps
+        //if (_lastMovementInput != Vector3.zero && !_movedPreviously)
+        //{
 
+        //    Notify();
+        //    // _movedPreviously = true;
+        //    _movedPreviously = true;
+
+        //}
+        //else if (_lastMovementInput == Vector3.zero)
+        //{
+        //    Notify();
+        //    _movedPreviously = false;
+
+        //}
+        //////end footsteps
+    }
     public void AddMovementInput(Quaternion rot, Vector2 rawInput)
     {
         _lastMovementRawInput = rawInput;
@@ -125,6 +165,8 @@ public class CharacterMovement : NetworkBehaviour
         _charaAnimHandler.CmdTpSetFloat(_aSpeedLevelRt, _lastMovementRawInput.x);
         _charaAnimHandler.CmdTpSetFloat(_aSpeedLevelFwd, _lastMovementRawInput.y);
     }
+
+
 
     [Header("Ground Check")]
     [SerializeField] private float _groundCheckDistance = 0.15f;
@@ -147,13 +189,14 @@ public class CharacterMovement : NetworkBehaviour
                 OnLanded?.Invoke(hit);
             }
         }
-        else IsOnGround = false;        
+        else IsOnGround = false;
     }
 
     #region Crouch
     public bool IsCrouching { get; protected set; }
     public Action OnStartCrouching;
     public Action OnEndCrouching;
+
     private bool CanCrouch => !IsCrouching && IsOnGround;
     public void Crouch()
     {
@@ -164,7 +207,7 @@ public class CharacterMovement : NetworkBehaviour
             _charaCtrl.height = 1.2f;
             _charaCtrl.center = new Vector3(0.0f, _charaCtrl.height / 2.0f, 0.0f);
             OnStartCrouching?.Invoke();
-        }        
+        }
     }
     public void Uncrouch()
     {
@@ -175,7 +218,7 @@ public class CharacterMovement : NetworkBehaviour
             _charaCtrl.height = 1.8f;
             _charaCtrl.center = new Vector3(0.0f, _charaCtrl.height / 2.0f, 0.0f);
             OnEndCrouching?.Invoke();
-        }        
+        }
     }
     #endregion
 
@@ -218,4 +261,47 @@ public class CharacterMovement : NetworkBehaviour
         else
             UI_GameHUD.SetCrosshairMovementSpread(200);
     }
+
+
+
+    #region Footsteps
+
+    public bool isMoving { get; protected set; }
+    
+
+    //rework these if another feature that requires the observer pattern is required
+    
+    public void Attach(IObserver observer)
+    {//we attach the LocalPlayerController to the list of things we need to keep updated
+        Debug.Log("Attached observer: " + observer.ToString());
+        _footStepObservers.Add(observer);
+    }
+
+    public void Detach(IObserver observer)
+    {
+        Debug.Log("Detached observer: " + observer.ToString());
+        _footStepObservers.Remove(observer);
+    }
+
+    public void Notify()
+    {
+        foreach (IObserver item in _footStepObservers)
+        {
+            Debug.Log("Notified observer: " + item.ToString());
+            item.UpdateState(this);
+        }
+    }
+
+    #endregion
+
+
+
+
+
+
+
+
+
+
 }
+
