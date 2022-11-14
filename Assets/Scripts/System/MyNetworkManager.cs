@@ -129,6 +129,14 @@ public class MyNetworkManager : NetworkManager
     public override void OnClientSceneChanged()
     {
         base.OnClientSceneChanged();
+
+        if (SceneManager.GetActiveScene().name != "Lobby")
+        {
+            NetworkClient.AddPlayer();
+        }
+        // Debug.Log(SceneManager.GetActiveScene().name);
+        
+        // NetworkClient.AddPlayer();
     }
 
     #endregion
@@ -159,14 +167,14 @@ public class MyNetworkManager : NetworkManager
     /// <param name="conn">Connection from client.</param>
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
-        if (SceneManager.GetActiveScene().name == "Lobby")
-        {
-            PlayerObjectController GamePlayerInstance = Instantiate(GamePlayerPrefab);
-            GamePlayerInstance.connectionID = conn.connectionId;
-            GamePlayerInstance.playerIDNumber = GamePlayers.Count + 1;
-            GamePlayerInstance.playerSteamID = (ulong)SteamMatchmaking.GetLobbyMemberByIndex((CSteamID)SteamLobby.Instance.CurrentLobbyId, GamePlayers.Count);
-            NetworkServer.AddPlayerForConnection(conn, GamePlayerInstance.gameObject);
-        }
+        //if (SceneManager.GetActiveScene().name == "Lobby")
+        //{
+        //    PlayerObjectController GamePlayerInstance = Instantiate(GamePlayerPrefab);
+        //    GamePlayerInstance.connectionID = conn.connectionId;
+        //    GamePlayerInstance.playerIDNumber = GamePlayers.Count + 1;
+        //    GamePlayerInstance.playerSteamID = (ulong)SteamMatchmaking.GetLobbyMemberByIndex((CSteamID)SteamLobby.Instance.CurrentLobbyId, GamePlayers.Count);
+        //    NetworkServer.AddPlayerForConnection(conn, GamePlayerInstance.gameObject);
+        //}
         base.OnServerAddPlayer(conn);
     }
 
@@ -265,8 +273,8 @@ public class MyNetworkManager : NetworkManager
     #endregion
 
 
-    [SerializeField] private PlayerObjectController GamePlayerPrefab;
-    public List<PlayerObjectController> GamePlayers { get; } = new List<PlayerObjectController>();
+    //[SerializeField] private PlayerObjectController GamePlayerPrefab;
+    //public List<PlayerObjectController> GamePlayers { get; } = new List<PlayerObjectController>();
 
     
 

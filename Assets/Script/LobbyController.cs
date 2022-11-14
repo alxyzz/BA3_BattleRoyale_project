@@ -7,40 +7,12 @@ using UnityEngine.UI;
 using System.Linq;
 using TMPro;
 using System;
+using UnityEngine.SceneManagement;
+using Mirror.Examples.Pong;
 
 public class LobbyController : MonoBehaviour
 {
     public static LobbyController instance;
-    public TMP_Text lobbyNameText;
-
-    public GameObject playerListViewContent;
-    public GameObject playerListItemPrefab;
-    public GameObject LocalPlayerObject;
-
-    public ulong CurrentLobbyID;
-    public bool playerItemCreated = false;
-    private List<PlayerListItem> PlayerListItems = new List<PlayerListItem>();
-    public PlayerObjectController localPlayerController;
-
-    public Button startGameButton;
-    public TMP_Text readyButtonText;
-
-
-    private MyNetworkManager manager;
-
-    private MyNetworkManager Manager
-    {
-        get
-        {
-            if (manager != null)
-            {
-                return manager;
-            }
-            return manager = MyNetworkManager.singleton as MyNetworkManager;
-        }
-
-    }
-
     private void Awake()
     {
         if (instance == null)
@@ -49,181 +21,207 @@ public class LobbyController : MonoBehaviour
         }
     }
 
+    [Header("UI Components")]
+    [SerializeField] private TextMeshProUGUI _tmpLobbyName;
+    [SerializeField] private TextMeshProUGUI _tmpLobbyId;
+    [SerializeField] private RectTransform _pnlPlayerList;
+    [SerializeField] private Button _btnStartReady;
+
+    //public GameObject playerListViewContent;
+    //public GameObject playerListItemPrefab;
+    //public GameObject LocalPlayerObject;
+
+    private CSteamID _lobbyId;
+    private bool _isOwner;
+    private Dictionary<CSteamID, UI_Lobby_PlayerItem> _players = new Dictionary<CSteamID, UI_Lobby_PlayerItem>();
+    // private List<PlayerListItem> PlayerListItems = new List<PlayerListItem>();
+    // public PlayerObjectController localPlayerController;
+    private bool _isReady = false;
+
+    private GameObject _playerItem;
+    private void Start()
+    {
+        if (null == SteamLobby.Instance)
+        {
+            SceneManager.LoadScene("MainMenu");
+            return;
+        }
+        _playerItem = Resources.Load<GameObject>("UI/Lobby/LobbyPlayerItem");
+
+        _lobbyId = SteamLobby.Instance.CurrentLobbyId;
+        _isOwner = SteamMatchmaking.GetLobbyOwner(_lobbyId) == SteamUser.GetSteamID();
+        _isReady = _isOwner;
+        SteamMatchmaking.SetLobbyMemberData(
+            _lobbyId,
+            SteamLobby.keyReady,
+            _isReady ? "1" : "0");
+        // Debug.Log(SteamMatchmaking.GetNumLobbyMembers(_lobbyId));
+        UpdateLobbyName();
+        InitLobbyId();
+        InitPlayerList();
+        InitStartReadyButton();
+
+        //// UpdateButton();
+        Callback<LobbyDataUpdate_t>.Create(OnLobbyDataUpdate);
+        Callback<LobbyChatUpdate_t>.Create(OnLobbyChatUpdate);
+    }
+
+    private void OnLobbyDataUpdate(LobbyDataUpdate_t callback)
+    {
+        Debug.Log("On lobby data update");
+        //_isOwner = SteamMatchmaking.GetLobbyOwner(_lobbyId) == SteamUser.GetSteamID();
+        //if (_isOwner)
+        //{
+        //    _isReady = true;
+
+        //    SteamMatchmaking.SetLobbyMemberData(
+        //        _lobbyId,
+        //        SteamLobby.keyReady,
+        //        "1");
+
+        //    InitStartReadyButton();
+        //}
+
+        if (callback.m_ulSteamIDLobby == callback.m_ulSteamIDMember) // Lobby data changed
+        {
+            UpdateLobbyName();
+        }
+        else // user data changed
+        {
+            CSteamID playerId = new CSteamID(callback.m_ulSteamIDMember);
+            _players[playerId].Refresh();
+        }
+    }
+    private void OnLobbyChatUpdate(LobbyChatUpdate_t callback)
+    {
+        Debug.Log("On lobby chat update.");
+        switch ((EChatMemberStateChange)callback.m_rgfChatMemberStateChange)
+        {
+            case EChatMemberStateChange.k_EChatMemberStateChangeEntered:
+                AddPlayerListItem(new CSteamID(callback.m_ulSteamIDUserChanged));
+                break;
+            case EChatMemberStateChange.k_EChatMemberStateChangeLeft:
+                RemovePlayerListItem(new CSteamID(callback.m_ulSteamIDUserChanged));
+                break;
+            case EChatMemberStateChange.k_EChatMemberStateChangeDisconnected:
+                break;
+            case EChatMemberStateChange.k_EChatMemberStateChangeKicked:
+                break;
+            case EChatMemberStateChange.k_EChatMemberStateChangeBanned:
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    //public Button startGameButton;
+    //public TMP_Text readyButtonText;
+
+
+    //private MyNetworkManager manager;
+
+    //private MyNetworkManager Manager
+    //{
+    //    get
+    //    {
+    //        if (manager != null)
+    //        {
+    //            return manager;
+    //        }
+    //        return manager = MyNetworkManager.singleton as MyNetworkManager;
+    //    }
+
+    //}
+
     public void UpdateLobbyName()
     {
-        CurrentLobbyID = Manager.GetComponent<SteamLobby>().CurrentLobbyId;
-        lobbyNameText.text = SteamMatchmaking.GetLobbyData(new CSteamID(CurrentLobbyID), "name");
+        _tmpLobbyName.SetText(SteamMatchmaking.GetLobbyData(_lobbyId, SteamLobby.keyLobbyName));       
     }
-
-    public void UpdatePlayerList()
+    private void InitLobbyId()
     {
-        if (!playerItemCreated)
+        _tmpLobbyId.SetText($"Lobby ID : {_lobbyId}");
+    }
+    public void CopyLobbyId()
+    {
+        TextEditor t = new TextEditor();
+        t.text = _lobbyId.ToString();
+        t.SelectAll();
+        t.Copy();
+    }
+    private void InitPlayerList()
+    {
+        for (int i = 0; i < SteamMatchmaking.GetNumLobbyMembers(_lobbyId); i++)
         {
-            CreateHostPlayerItem();
-        }
-        if (PlayerListItems.Count < manager.GamePlayers.Count)
-        {
-            CreateClientPlayerItem();
-        }
-        if (PlayerListItems.Count > manager.GamePlayers.Count)
-        {
-            RemovePlayerItem();
-        }
-        if (PlayerListItems.Count == manager.GamePlayers.Count)
-        {
-            UpdatePlayerItem();
+            AddPlayerListItem(SteamMatchmaking.GetLobbyMemberByIndex(_lobbyId, i));
         }
     }
 
-    public void CreateHostPlayerItem()
+    private void AddPlayerListItem(CSteamID playerId)
     {
-        foreach (PlayerObjectController player in Manager.GamePlayers)
-        {
-            GameObject NewPlayerItem = Instantiate(playerListItemPrefab) as GameObject;
-            PlayerListItem NewPlayerItemScript = NewPlayerItem.GetComponent<PlayerListItem>();
-
-            NewPlayerItemScript.PlayerName = player.playerName;
-            NewPlayerItemScript.ConnectionID = player.connectionID;
-            NewPlayerItemScript.playerSteamID = player.playerSteamID;
-            NewPlayerItemScript.ready = player.ready;
-            NewPlayerItemScript.SetPlayerValues();
-
-            NewPlayerItem.transform.SetParent(playerListViewContent.transform);
-            NewPlayerItem.transform.localScale = Vector3.one;
-
-            PlayerListItems.Add(NewPlayerItemScript);
-        }
-
-        playerItemCreated = true;
+        UI_Lobby_PlayerItem item = Instantiate(_playerItem, _pnlPlayerList).GetComponent<UI_Lobby_PlayerItem>();
+        _players.Add(playerId, item);
+        item.Initialise(playerId);
     }
-    public void CreateClientPlayerItem()
+    private void RemovePlayerListItem(CSteamID playerId)
     {
-        foreach (PlayerObjectController player in manager.GamePlayers)
+        if (_players.ContainsKey(playerId))
         {
-            if (!PlayerListItems.Any(b => b.ConnectionID == player.connectionID))
-            {
-                GameObject NewPlayerItem = Instantiate(playerListItemPrefab) as GameObject;
-                PlayerListItem NewPlayerItemScript = NewPlayerItem.GetComponent<PlayerListItem>();
-
-                NewPlayerItemScript.PlayerName = player.playerName;
-                NewPlayerItemScript.ConnectionID = player.connectionID;
-                NewPlayerItemScript.playerSteamID = player.playerSteamID;
-                NewPlayerItemScript.ready = player.ready;
-                NewPlayerItemScript.SetPlayerValues();
-
-                NewPlayerItem.transform.SetParent(playerListViewContent.transform);
-                NewPlayerItem.transform.localScale = Vector3.one;
-
-                PlayerListItems.Add(NewPlayerItemScript);
-            }
-           
-        }
-
-    }
-    public void UpdatePlayerItem()
-    {
-        foreach (PlayerObjectController player in manager.GamePlayers)
-        {
-            foreach (PlayerListItem playerListItemScript in PlayerListItems)
-            {
-                if (playerListItemScript.ConnectionID == player.connectionID)
-                {
-                    playerListItemScript.PlayerName = player.playerName;
-                    playerListItemScript.ready = player.ready;
-                    playerListItemScript.SetPlayerValues();
-                    if (player == localPlayerController)
-                    {
-                        UpdateButton();
-                    }
-                }
-            }
-
-        }
-        CheckIsAllready();
-    }
-    public void RemovePlayerItem()
-    {
-        List<PlayerListItem> playerListItemsToRemove = new List<PlayerListItem>();
-        foreach (var playerListItem in PlayerListItems)
-        {
-            if (!manager.GamePlayers.Any(b => b.connectionID == playerListItem.ConnectionID))
-            {
-                playerListItemsToRemove.Add(playerListItem);
-            }
-        }
-        if (playerListItemsToRemove.Count > 0)
-        {
-            foreach (PlayerListItem playerListItemToRemove in playerListItemsToRemove)
-            {
-                GameObject ObjectToRemove = playerListItemToRemove.gameObject;
-                PlayerListItems.Remove(playerListItemToRemove);
-                Destroy(ObjectToRemove);
-                ObjectToRemove = null;
-            }
-        }
-    }
-
-    public void FindLocalPlayer()
-    {
-        LocalPlayerObject = GameObject.Find("LocalGamePlayer");
-        localPlayerController = LocalPlayerObject.GetComponent<PlayerObjectController>();
-
-        
-    }
-
-    public void ReadyPlayer()
-    {
-        localPlayerController.ChangeReady();
-    }
-
-    public void UpdateButton()
-    {
-        if (localPlayerController.ready)
-        {
-            readyButtonText.text = "Not ready";
-        }
-        else
-        {
-            readyButtonText.text = "Ready";
-        }
+            Destroy(_players[playerId].gameObject);
+            _players.Remove(playerId);            
+        }        
     }
     
-    public void CheckIsAllready()
+    private bool CanStartGame()
     {
-        bool allReady = false;
-        foreach (var player in Manager.GamePlayers)
+        // if (_players.Count < 2) return false;
+        foreach (var item in _players)
         {
-            if (player.ready)
+            string ready = SteamMatchmaking.GetLobbyMemberData(
+                _lobbyId,
+                item.Key,
+                SteamLobby.keyReady
+                );
+            if (ready != "1")
             {
-                allReady = true;
-            }
-            else
-            {
-                allReady = false;
-                break;
+                MasterUIManager.AddPopupHint("There are players unready...");
+                return false;
             }
         }
-        if (allReady)
-        {
-            if (localPlayerController.playerIDNumber == 1)
-            {
-                startGameButton.interactable = true;
-            }
-            else
-            {
-                startGameButton.interactable = false;
-            }
-        }
-        else
-        {
-            startGameButton.interactable = false;
-        }
+        
+        return true;
     }
 
     public void StartGame(string sceneName)
     {
-        localPlayerController.CanStartGame(sceneName);
+        // localPlayerController.CanStartGame(sceneName);
+    }
+    private void InitStartReadyButton()
+    {
+        _btnStartReady.GetComponentInChildren<TextMeshProUGUI>().SetText(_isOwner ? "Start" : "Ready");
+        // _btnStartReady.interactable = !_isOwner;
     }
 
-    
+    public void StartOrReady()
+    {
+
+        if (_isOwner)
+        {
+            if (CanStartGame())
+            {
+                Debug.Log("Can start game!");
+                SteamMatchmaking.SetLobbyJoinable(_lobbyId, false);
+                MyNetworkManager.singleton.ServerChangeScene("SampleScene");
+            }
+        }
+        else
+        {
+            _isReady = !_isReady;
+            SteamMatchmaking.SetLobbyMemberData(
+                _lobbyId,
+                SteamLobby.keyReady,
+                _isReady ? "1" : "0");
+            _btnStartReady.GetComponentInChildren<TextMeshProUGUI>().SetText(_isReady ? "Unready" : "Ready");
+        }
+    }
 }

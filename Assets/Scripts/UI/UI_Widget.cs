@@ -40,7 +40,7 @@ public class UI_Widget : MonoBehaviour
             float start = RenderOpacity;
             while (time < duration)
             {
-                time = Mathf.Min(duration, time + Time.deltaTime);
+                time = Mathf.Min(duration, time + Time.unscaledDeltaTime);
                 RenderOpacity = Mathf.Lerp(start, target, curve.Evaluate(time / duration));
                 yield return null;
             }
@@ -71,7 +71,7 @@ public class UI_Widget : MonoBehaviour
             Vector3 start = transform.localPosition;
             while (time < duration)
             {
-                time = Mathf.Min(duration, time + Time.deltaTime);
+                time = Mathf.Min(duration, time + Time.unscaledDeltaTime);
                 transform.localPosition = Vector3.Lerp(start, target, curve.Evaluate(time / duration));
                 yield return null;
             }

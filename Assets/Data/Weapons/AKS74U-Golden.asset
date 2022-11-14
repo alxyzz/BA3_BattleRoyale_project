@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8553f235b4ff14644a57b12b14ceee6e, type: 3}
   m_Name: AKS74U-Golden
   m_EditorClassIdentifier: 
-  _weaponName: AKS74U
+  _weaponName: AKS74U-Golden
   _type: 0
   _rangeType: 0
   _maxRange: 50
@@ -205,4 +205,4 @@ MonoBehaviour:
   _reloadMultiplier: 1
   _ammo: 70
   _backupAmmo: 210
-  _movementMultiplier: 0.9
+  _movementMultiplier: 0.8
