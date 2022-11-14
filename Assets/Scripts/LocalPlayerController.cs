@@ -343,10 +343,11 @@ public class LocalPlayerController : NetworkBehaviour
         }
     }
     #endregion
+    [Header("Death")]
     [SerializeField] private Transform _spectator;
+    [SerializeField] private float _deathLerpDuration = 1.5f;
     public void Die()
     {
-        //ParentConstraint p = Camera.main.GetComponent<ParentConstraint>();
         _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
         _tpSMR.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
 
@@ -356,26 +357,17 @@ public class LocalPlayerController : NetworkBehaviour
         StartCoroutine(UpdateCameraToSpectator(
             Camera.main.transform.position,
             Camera.main.transform.rotation));
-        //p.weight = 0;
-        //ConstraintSource cs = new ConstraintSource()
-        //{
-        //    sourceTransform = _spectator,
-        //    weight = 0
-        //};
-        //p.AddSource(cs);
-        //StartCoroutine(UpdateConstraintSource(cs));
     }
     private IEnumerator UpdateCameraToSpectator(Vector3 startPos, Quaternion startRot)
     {
         AnimationCurve curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-        const float duration = 1.5f;
         float time = 0;
-        while (time < duration)
+        while (time < _deathLerpDuration)
         {
-            time = Mathf.Min(duration, time + Time.deltaTime);
+            time = Mathf.Min(_deathLerpDuration, time + Time.deltaTime);
             Camera.main.transform.SetPositionAndRotation(
-                Vector3.Lerp(startPos, _spectator.position, curve.Evaluate(time / duration)),
-                Quaternion.Slerp(startRot, _spectator.rotation, curve.Evaluate(time / duration))
+                Vector3.Lerp(startPos, _spectator.position, curve.Evaluate(time / _deathLerpDuration)),
+                Quaternion.Slerp(startRot, _spectator.rotation, curve.Evaluate(time / _deathLerpDuration))
                 );
             yield return null;
         }

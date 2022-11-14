@@ -8,7 +8,7 @@ public class UI_InventorySlot : MonoBehaviour
 {
     private UI_Widget _widget;
     [SerializeField] private TextMeshProUGUI _tmpWeaponName;
-    Vector3 _originPosition;
+    private Vector3 _originPosition;
 
     private void Awake()
     {
@@ -19,14 +19,9 @@ public class UI_InventorySlot : MonoBehaviour
         _tmpWeaponName.SetText("");
         _tmpWeaponName.color = Color.gray;
         _tmpWeaponName.fontSize = 28;
-        Debug.Log(transform.localPosition);
-        StartCoroutine(DelayInit());
     }
-    private IEnumerator DelayInit()
+    public void InitPosition()
     {
-        yield return new WaitForEndOfFrame();
-        Debug.Log(transform.localPosition);
-
         _originPosition = transform.localPosition;
     }
     public void SetNewName(string newName)
