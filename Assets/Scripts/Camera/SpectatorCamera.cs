@@ -10,7 +10,7 @@ public class SpectatorCamera : MonoBehaviour
 
     private float _stateAlpha;
     private AnimationCurve _fovCurve = AnimationCurve.EaseInOut(0, 60, 1, 80);
-    private AnimationCurve _speedCurve = AnimationCurve.EaseInOut(0, 5, 1, 15);
+    private AnimationCurve _speedCurve = AnimationCurve.EaseInOut(0, 5, 1, 20);
     private readonly float _changeSpeed = 3f;
 
     private void Awake()
