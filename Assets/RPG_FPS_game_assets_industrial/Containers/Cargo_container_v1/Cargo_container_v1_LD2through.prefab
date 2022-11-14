@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4000010202300486}
   - component: {fileID: 33000012234758372}
   - component: {fileID: 23000013125963308}
-  - component: {fileID: 64000014039496162}
+  - component: {fileID: 64000011579675622}
   m_Layer: 0
   m_Name: Cargo_container_v1_LD2through
   m_TagString: Untagged
@@ -84,7 +84,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &64000014039496162
+--- !u!64 &64000011579675622
 MeshCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
