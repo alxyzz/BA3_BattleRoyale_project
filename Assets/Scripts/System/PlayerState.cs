@@ -1,4 +1,5 @@
 using Mirror;
+using Steamworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Rendering;
 using UnityEngine.UIElements;
+using static UnityEditor.Progress;
 
 public class RaycastHitComparer : IComparer<RaycastHit>
 {
@@ -33,6 +35,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
         base.OnStartServer();
         health = 100;
         kills = 0;
+        ping = -1;
     }
     public override void OnStartClient()
     {
@@ -49,6 +52,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
+        CmdSetNickname(SteamFriends.GetPersonaName());
         _cUpdatePing = StartCoroutine(UpdatePing());
     }
     public override void OnStopLocalPlayer()
@@ -65,11 +69,18 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         if (!isLocalPlayer) return;
         Debug.Log("Local player start!");
+    }
+
+    [TargetRpc]
+    public void TargetInitialWeapon()
+    {
+        UI_GameHUD.SetUIEnabled(true);
+
+        GetComponent<LocalPlayerController>().LocalStartGame();
         // initial weapon
         WeaponData initData = LevelManager.Instance.initialWeapon;
         PickUpWeapon(new WeaponIdentityData(initData, initData.Ammo, initData.BackupAmmo));
     }
-
 
     [Header("Components")]
     [SerializeField] private Transform _tpSocketWeaponLeft;
@@ -85,7 +96,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     private readonly int _aInspect = Animator.StringToHash("Inspect");
 
 
-    [SyncVar][HideInInspector] public string nickname;
+    [SyncVar(hook = nameof(OnNicknameChanged))][HideInInspector] public string nickname;
     [SyncVar][HideInInspector] public int health;
     [SyncVar(hook = nameof(OnKillsChanged))][HideInInspector] public int kills;
     [SyncVar(hook = nameof(OnBodyColourChanged))][HideInInspector] public Color bodyColour;
@@ -117,7 +128,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
 
     public void PickUpWeapon(WeaponIdentityData identity)
     {
-        UIManager.SetNewWeapon((int)identity.Data.RangeType, identity.Data.WeaponName);
+        UI_GameHUD.SetNewWeapon((int)identity.Data.RangeType, identity.Data.WeaponName);
 
         if (inventoryWeapons[(int)identity.Data.RangeType] != null)
         {
@@ -163,7 +174,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
             CurrentWeaponInHand.FireBurst(out List<Vector3> directions);
-            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
+            UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
 
             CmdFire(curWpnDbIndex, Camera.main.transform.position, directions);
         }
@@ -176,7 +187,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
             CurrentWeaponInHand.FireContinuously(out List<Vector3> directions);
-            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
+            UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
             CmdFire(curWpnDbIndex, Camera.main.transform.position, directions);
         }
     }
@@ -205,10 +216,10 @@ public class PlayerState : NetworkBehaviour, IDamageable
             }
             _curWpnObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity, GetComponent<LocalPlayerController>());
 
-            UIManager.ActiveInventorySlot(curWpnIndex);
-            UIManager.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
-            UIManager.SetBackupAmmo(CurrentWeaponIdentity.BackupAmmo);
-            UIManager.SetCrosshairWeaponSpread(CurrentWeaponIdentity.Data.CrosshairSpread);
+            UI_GameHUD.ActiveInventorySlot(curWpnIndex);
+            UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
+            UI_GameHUD.SetBackupAmmo(CurrentWeaponIdentity.BackupAmmo);
+            UI_GameHUD.SetCrosshairWeaponSpread(CurrentWeaponIdentity.Data.CrosshairSpread);
         }
         else
         {
@@ -310,11 +321,13 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     public void OnUnholstered()
     {
+        if (!IsAlive) return;
         CurrentWeaponInHand.IsHolstered = false;
     }
 
     public void StartReload()
     {
+        if (!IsAlive) return;
         if (CurrentWeaponInHand.CanReload())
         {
             EndInspect();
@@ -325,6 +338,8 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     public void ReloadAttachToHand(int attach)
     {
+        if (!IsAlive) return;
+
         if (attach > 0)
             CurrentWeaponInHand.RemoveMagazine(isLocalPlayer ? _fpSocketWeaponLeft : _tpSocketWeaponLeft);
         else
@@ -332,10 +347,12 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     public void Reload()
     {
+        if (!IsAlive) return;
         CurrentWeaponInHand.Reload();
     }
     public void EndReload()
     {
+        if (!IsAlive) return;
         CurrentWeaponInHand.EndReload();
     }
 
@@ -349,19 +366,32 @@ public class PlayerState : NetworkBehaviour, IDamageable
         TargetRefreshHealth(health);
         if (health == 0)
         {
+            if (instigator != null)
+                instigator.CmdAddKill();
             // dead
+            RpcDie();
         }
     }
     [TargetRpc]
     public void TargetRefreshHealth(int hp)
     {
         health = hp;
-        UIManager.SetHealth(health);
+        UI_GameHUD.SetHealth(health);
     }
     #endregion
 
     #region Statistics
-    public Action onPingChanged;
+    public Action<string> onNicknameChanged;
+    [Command]
+    private void CmdSetNickname(string newNickname)
+    {
+        nickname = newNickname;
+    }
+    private void OnNicknameChanged(string oldName, string newName)
+    {
+        onNicknameChanged?.Invoke(newName);
+    }
+    public Action<int> onPingChanged;
     [Command]
     private void CmdSetPing(int val)
     {
@@ -369,7 +399,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     private void OnPingChanged(int oldPing, int newPing)
     {
-        onPingChanged?.Invoke();
+        onPingChanged?.Invoke(newPing);
     }
     Coroutine _cUpdatePing;
     IEnumerator UpdatePing()
@@ -381,16 +411,21 @@ public class PlayerState : NetworkBehaviour, IDamageable
         }
     }
 
-    public Action onKillsChanged;
+    public Action<int> onKillsChanged;
     [Command]
+    private void CmdSetKill(int val)
+    {
+        kills = val;
+    }
     private void CmdAddKill()
     {
         kills++;
     }
     private void OnKillsChanged(int oldKills, int newKills)
     {
-        onKillsChanged?.Invoke();
+        onKillsChanged?.Invoke(newKills);
     }
+
     #endregion
 
     #region Inspect
@@ -407,4 +442,25 @@ public class PlayerState : NetworkBehaviour, IDamageable
         CurrentWeaponInHand.SetInspect(false);
     }
     #endregion
+    public bool IsAlive => health > 0;
+    public Action onDied;
+    [ClientRpc]
+    public void RpcDie()
+    {
+        if (isLocalPlayer)
+        {
+            _charaAnimHandler.CmdTpSetLayerWeight(1, 0);
+            _charaAnimHandler.CmdTpSetTrigger(Animator.StringToHash("Dead"));
+            Destroy(_curWpnObj);
+            GetComponent<LocalPlayerController>().Die();
+            for (int i = 0; i < inventoryWeapons.Length; i++)
+            {
+                if (null != inventoryWeapons[i])
+                {
+                    ThrowWeapon(inventoryWeapons[i]);
+                }
+            }
+        }
+        onDied?.Invoke();
+    }
 }

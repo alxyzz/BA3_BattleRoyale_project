@@ -7,6 +7,8 @@ public class WeaponOverworld : NetworkBehaviour, IInteractable
 {
     private GameObject _widget;
     [SerializeField] private WeaponData _data;
+
+    private GameObject _pfbInfoWidget;
     public int CurrentAmmo { get; private set; }
     public int BackupAmmo { get; private set; }
     public void SetAmmo(int current, int backup)
@@ -17,9 +19,9 @@ public class WeaponOverworld : NetworkBehaviour, IInteractable
     }
     private void Awake()
     {
-        Debug.Log("Weapon Overworld Awake");
         CurrentAmmo = _data.Ammo;
         BackupAmmo = _data.BackupAmmo;
+        _pfbInfoWidget = Resources.Load<GameObject>("UI/Game/InfoWidget");
     }
 
     public void BeInteracted(PlayerState pState)
@@ -32,15 +34,15 @@ public class WeaponOverworld : NetworkBehaviour, IInteractable
     public void EndBeingSeen()
     {
         // Debug.Log(name + " was unseen.");
-        UIManager.ClearInteractionHint();
+        UI_GameHUD.ClearInteractionHint();
         Destroy(_widget);
     }
 
     public void StartBeingSeen()
     {
         Debug.Log(name + " was seen.");
-        UIManager.AddInteractionHint("E: Pick up");
-        _widget = Instantiate(Resources.Load<GameObject>("UI/InfoWidget"));
+        UI_GameHUD.AddInteractionHint("E: Pick up");
+        _widget = Instantiate(_pfbInfoWidget);
         _widget.GetComponent<WID_Info>().Initialise(transform, _data.WeaponName, CurrentAmmo, BackupAmmo, _data.RangeType);
     }
 

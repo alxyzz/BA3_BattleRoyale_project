@@ -1,6 +1,9 @@
 using Mirror;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Animations;
+using Unity.VisualScripting;
+//using UnityEngine.UIElements;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/guides/networkbehaviour
@@ -97,6 +100,7 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
 
     private void Start()
     {
+        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
         _charaMovement.Attach(this);
         if (isLocalPlayer)
         {
@@ -115,7 +119,7 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
         }
         else
         {
-            _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+            // _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
             // _firstPersonRoot.gameObject.SetActive(false);
             Destroy(this);
         }
@@ -131,9 +135,16 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
             Application.Quit();
         }
     }
+    public void LocalStartGame()
+    {
+        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+    }
     private void Update()
     {
+        if (!GameState.HasBegun) return;
         if (!isLocalPlayer) return;
+        UpdateShowStatisticsInput();
+        if (!_playerState.IsAlive) return;
 
         UpdateRotationInput();
         UpdateMovementInput();
@@ -143,7 +154,6 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
         UpdateFireInput();
         UpdateChangeWeaponInput();
         UpdateReloadInput();
-        UpdateShowStatisticsInput();
         UpdateInspectInput();
 
         CheckInteractable();
@@ -151,6 +161,11 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
         if (Input.GetKeyDown(KeyCode.Alpha0))
         {
             GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
+        }
+        // test
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            _playerState.ApplyDamage(10, _playerState, null, DamageType.DEFAULT);
         }
     }
 
@@ -377,11 +392,11 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            UIManager.SetStatisticsShown(true);
+            UI_GameHUD.SetStatisticsShown(true);
         }
         else if (Input.GetKeyUp(KeyCode.Tab))
         {
-            UIManager.SetStatisticsShown(false);
+            UI_GameHUD.SetStatisticsShown(false);
         }
     }
     #endregion
@@ -399,4 +414,34 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
         }
     }
     #endregion
+    [Header("Death")]
+    [SerializeField] private Transform _spectator;
+    [SerializeField] private float _deathLerpDuration = 1.5f;
+    public void Die()
+    {
+        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+        _tpSMR.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
+        UI_GameHUD.SetUIEnabled(false);
+        Camera.main.transform.GetComponent<CameraShake>().Stop();
+        Camera.main.transform.SetParent(null);
+        StartCoroutine(UpdateCameraToSpectator(
+            Camera.main.transform.position,
+            Camera.main.transform.rotation));
+    }
+    private IEnumerator UpdateCameraToSpectator(Vector3 startPos, Quaternion startRot)
+    {
+        AnimationCurve curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        float time = 0;
+        while (time < _deathLerpDuration)
+        {
+            time = Mathf.Min(_deathLerpDuration, time + Time.deltaTime);
+            Camera.main.transform.SetPositionAndRotation(
+                Vector3.Lerp(startPos, _spectator.position, curve.Evaluate(time / _deathLerpDuration)),
+                Quaternion.Slerp(startRot, _spectator.rotation, curve.Evaluate(time / _deathLerpDuration))
+                );
+            yield return null;
+        }
+        Camera.main.AddComponent<SpectatorCamera>();
+    }
 }

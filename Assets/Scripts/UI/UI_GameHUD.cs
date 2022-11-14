@@ -1,11 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class UIManager : MonoBehaviour
+public class UI_GameHUD : MonoBehaviour
 {
-    private static UIManager instance;
+    private static UI_GameHUD instance;
     private void Awake()
     {
         instance = this;
@@ -13,18 +15,26 @@ public class UIManager : MonoBehaviour
     private void Start()
     {
         ClearInteractionHint();
+        // SetUIEnabled(false);
+    }
+
+    [Header("Countdown")]
+    [SerializeField] private TextMeshProUGUI _tmpCountdown;
+    public static void SetCountdown(string str)
+    {
+        instance._tmpCountdown.SetText(str);
     }
 
     [Header("Interaction")]
-    [SerializeField] private Text _interactionHint;
+    [SerializeField] private TextMeshProUGUI _tmpInteraction;
 
     public static void AddInteractionHint(string content)
     {
-        instance._interactionHint.text = content;
+        instance._tmpInteraction.SetText(content);
     }
     public static void ClearInteractionHint()
     {
-        instance._interactionHint.text = "";
+        instance._tmpInteraction.SetText("");
     }
 
     [Header("Inventory")]
@@ -37,25 +47,18 @@ public class UIManager : MonoBehaviour
     {
         instance._inventory.ActiveSlot(index);
     }
-    //public static void ActiveInventoryPrevious()
-    //{
-    //    instance._inventory.ActivePrevious();
-    //}
-    //public static void ActiveInventoryNext()
-    //{
-    //    instance._inventory.ActiveNext();
-    //}
 
     [Header("Ammo")]
-    [SerializeField] private Text _ammo;
-    [SerializeField] private Text _backupAmmo;
+    [SerializeField] private GameObject _pnlAmmo;
+    [SerializeField] private TextMeshProUGUI _tmpAmmo;
+    [SerializeField] private TextMeshProUGUI _tmpBackupAmmo;
     public static void SetAmmo(int val)
     {
-        instance._ammo.text = val.ToString();
+        instance._tmpAmmo.SetText(val.ToString());
     }
     public static void SetBackupAmmo(int val)
     {
-        instance._backupAmmo.text = val.ToString();
+        instance._tmpBackupAmmo.SetText(val.ToString());
     }
 
     [Header("Crosshair")]
@@ -74,20 +77,21 @@ public class UIManager : MonoBehaviour
     }
 
     [Header("Personal")]
-    [SerializeField] private Text _txtHealth;
+    [SerializeField] private GameObject _pnlPersonal;
+    [SerializeField] private TextMeshProUGUI _tmpHealth;
     [SerializeField] private Color _hpColor1 = Color.white;
     [SerializeField] private Color _hpColor2 = Color.yellow;
     [SerializeField] private Color _hpColor3 = Color.red;
-    [SerializeField] private Text _txtArmor;
+    [SerializeField] private TextMeshProUGUI _tmpArmor;
     public static void SetHealth(int val)
     {
-        instance._txtHealth.text = val.ToString();
-        instance._txtHealth.color = val >= 50 ? instance._hpColor1 : 
+        instance._tmpHealth.SetText(val.ToString());
+        instance._tmpHealth.color = val >= 50 ? instance._hpColor1 : 
             (val >= 20 ? instance._hpColor2 : instance._hpColor3);
     }
     public static void SetArmor(int val)
     {
-        instance._txtArmor.text = val.ToString();
+        instance._tmpArmor.SetText(val.ToString());
     }
 
     [Header("Statistics")]
@@ -96,8 +100,23 @@ public class UIManager : MonoBehaviour
     {
         instance._statistics.SetShown(shown);
     }
-    public static void RefreshStatistics()
+    public static void AddPlayerToStatistics(PlayerState ps)
     {
-        instance._statistics.Refresh();
+        instance._statistics.AddPlayerSlot(ps);
+    }
+    public static void RemovePlayerFromStatistics(PlayerState ps)
+    {
+        instance._statistics.RemovePlayerSlot(ps);
+    }
+    //public static void ReorderStatistics()
+    //{
+    //    instance._statistics.Reorder();
+    //}
+    public static void SetUIEnabled(bool enabled)
+    {
+        instance._pnlAmmo.SetActive(enabled);
+        instance._pnlPersonal.SetActive(enabled);
+        instance._inventory.gameObject.SetActive(enabled);
+        instance._crosshair.gameObject.SetActive(enabled);
     }
 }

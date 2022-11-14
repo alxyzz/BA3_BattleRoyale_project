@@ -1,19 +1,20 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class WID_Info : MonoBehaviour
 {
     private Transform Following { get; set; }
-    [SerializeField] private Text _txtName;
-    [SerializeField] private Text _txtDetails;
+    [SerializeField] private TextMeshProUGUI _tmpName;
+    [SerializeField] private TextMeshProUGUI _tmpDetails;
 
     public void Initialise(Transform following, string wpnName, int curAmmo, int backupAmmo, WeaponRangeType type)
     {
         Following = following;
-        _txtName.text = wpnName;
-        _txtDetails.text = $"AMMO: {curAmmo} / {backupAmmo}\n{type}";
+        _tmpName.SetText(wpnName);
+        _tmpDetails.SetText($"AMMO: <#FFF200>{curAmmo} / {backupAmmo}</color>\n{type}");
     }
 
     void Update()

@@ -52,4 +52,14 @@ public class CharacterAnimHandler : NetworkBehaviour
     {
         _fpAnimator.SetTrigger(hashId);
     }
+    [Command]
+    public void CmdTpSetLayerWeight(int index, int weight)
+    {
+        RpcTpSetLayerWeight(index, weight);
+    }
+    [ClientRpc]
+    private void RpcTpSetLayerWeight(int index, int weight)
+    {
+        _tpAnimator.SetLayerWeight(index, weight);
+    }
 }
