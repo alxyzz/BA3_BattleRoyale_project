@@ -33,14 +33,14 @@ public class PlayerObjectController : NetworkBehaviour
 
     private void PlayerReadyUpdate(bool oldValue, bool newValue)
     {
-        if (isServer)
-        {
-            this.ready = newValue;
-        }
-        if (isClient)
-        {
-            LobbyController.instance.UpdatePlayerList();
-        }
+        //if (isServer)
+        //{
+        //    this.ready = newValue;
+        //}
+        //if (isClient)
+        //{
+        //    LobbyController.instance.UpdatePlayerList();
+        //}
     }
 
     [Command]
@@ -61,21 +61,21 @@ public class PlayerObjectController : NetworkBehaviour
     {
         CmdSetPlayerName(SteamFriends.GetPersonaName().ToString());
         gameObject.name = "LocalGamePlayer";
-        LobbyController.instance.FindLocalPlayer();
+        // LobbyController.instance.FindLocalPlayer();
         LobbyController.instance.UpdateLobbyName();
     }
 
     public override void OnStartClient()
     {
-        Manager.GamePlayers.Add(this);
+        // Manager.GamePlayers.Add(this);
         LobbyController.instance.UpdateLobbyName();
-        LobbyController.instance.UpdatePlayerList();
+        // LobbyController.instance.UpdatePlayerList();
     }
 
     public override void OnStopClient()
     {
-        Manager.GamePlayers.Remove(this);
-        LobbyController.instance.UpdatePlayerList();
+        // Manager.GamePlayers.Remove(this);
+        // LobbyController.instance.UpdatePlayerList();
     }
 
     [Command]
@@ -92,7 +92,7 @@ public class PlayerObjectController : NetworkBehaviour
         }
         if (isClient)
         {
-            LobbyController.instance.UpdatePlayerList();
+           // LobbyController.instance.UpdatePlayerList();
         }
     }
 

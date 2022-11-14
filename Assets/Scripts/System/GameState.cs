@@ -21,7 +21,14 @@ public class GameState : NetworkBehaviour
         instance = this;
         
     }
-
+    private void Start()
+    {
+        StartGame();
+    }
+    public static void StartGame()
+    {
+        instance.hasBegun = true;
+    }
     [SyncVar][HideInInspector] public bool hasBegun;
     public static bool HasBegun => instance.hasBegun;
 

@@ -160,4 +160,4 @@ MonoBehaviour:
   _reloadMultiplier: 1
   _ammo: 30
   _backupAmmo: 120
-  _movementMultiplier: 0.85
+  _movementMultiplier: 0.9

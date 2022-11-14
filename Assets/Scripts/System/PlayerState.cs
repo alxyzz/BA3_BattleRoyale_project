@@ -63,7 +63,6 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     private void Start()
     {
-
         if (!isLocalPlayer) return;
         Debug.Log("Local player start!");
         // initial weapon
