@@ -69,9 +69,9 @@ public class SteamLobby : MonoBehaviour
         SteamMatchmaking.SetLobbyData(
             lobbyId, keyHostAddress,
             SteamUser.GetSteamID().ToString());
-        SteamMatchmaking.SetLobbyData(
-            lobbyId, keyLobbyName, 
-            $"<#FFF210>{SteamFriends.GetPersonaName()}</color>'s lobby");
+        //SteamMatchmaking.SetLobbyData(
+        //    lobbyId, keyLobbyName, 
+        //    $"<#FFF210>{SteamFriends.GetPersonaName()}</color>'s lobby");
     }
     private void OnJoinRequest(GameLobbyJoinRequested_t callback)
     {

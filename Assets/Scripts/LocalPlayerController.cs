@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using System.Collections;
+using UnityEngine.Animations;
+using Unity.VisualScripting;
+//using UnityEngine.UIElements;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/guides/networkbehaviour
@@ -95,6 +98,7 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void Start()
     {
+        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
         if (isLocalPlayer)
         {
             _tpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
@@ -115,14 +119,21 @@ public class LocalPlayerController : NetworkBehaviour
         }
         else
         {
-            _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+            // _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
             // _firstPersonRoot.gameObject.SetActive(false);
             Destroy(this);
         }
     }
+    public void LocalStartGame()
+    {
+        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+    }
     private void Update()
     {
+        if (!GameState.HasBegun) return;
         if (!isLocalPlayer) return;
+        UpdateShowStatisticsInput();
+        if (!_playerState.IsAlive) return;
 
         UpdateRotationInput();
         UpdateMovementInput();
@@ -132,7 +143,6 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateFireInput();
         UpdateChangeWeaponInput();
         UpdateReloadInput();
-        UpdateShowStatisticsInput();
         UpdateInspectInput();
 
         CheckInteractable();
@@ -140,6 +150,11 @@ public class LocalPlayerController : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha0))
         {
             GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
+        }
+        // test
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            _playerState.ApplyDamage(10, _playerState, null, DamageType.DEFAULT);
         }
     }
 
@@ -306,11 +321,11 @@ public class LocalPlayerController : NetworkBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            UIManager.SetStatisticsShown(true);
+            UI_GameHUD.SetStatisticsShown(true);
         }
         else if (Input.GetKeyUp(KeyCode.Tab))
         {
-            UIManager.SetStatisticsShown(false);
+            UI_GameHUD.SetStatisticsShown(false);
         }
     }
     #endregion
@@ -328,4 +343,42 @@ public class LocalPlayerController : NetworkBehaviour
         }
     }
     #endregion
+    [SerializeField] private Transform _spectator;
+    public void Die()
+    {
+        //ParentConstraint p = Camera.main.GetComponent<ParentConstraint>();
+        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+        _tpSMR.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
+        UI_GameHUD.SetUIEnabled(false);
+        Camera.main.transform.GetComponent<CameraShake>().Stop();
+        Camera.main.transform.SetParent(null);
+        StartCoroutine(UpdateCameraToSpectator(
+            Camera.main.transform.position,
+            Camera.main.transform.rotation));
+        //p.weight = 0;
+        //ConstraintSource cs = new ConstraintSource()
+        //{
+        //    sourceTransform = _spectator,
+        //    weight = 0
+        //};
+        //p.AddSource(cs);
+        //StartCoroutine(UpdateConstraintSource(cs));
+    }
+    private IEnumerator UpdateCameraToSpectator(Vector3 startPos, Quaternion startRot)
+    {
+        AnimationCurve curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+        const float duration = 1.5f;
+        float time = 0;
+        while (time < duration)
+        {
+            time = Mathf.Min(duration, time + Time.deltaTime);
+            Camera.main.transform.SetPositionAndRotation(
+                Vector3.Lerp(startPos, _spectator.position, curve.Evaluate(time / duration)),
+                Quaternion.Slerp(startRot, _spectator.rotation, curve.Evaluate(time / duration))
+                );
+            yield return null;
+        }
+        Camera.main.AddComponent<SpectatorCamera>();
+    }
 }

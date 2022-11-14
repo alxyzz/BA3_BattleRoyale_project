@@ -81,6 +81,7 @@ public class CharacterMovement : NetworkBehaviour
     private void Update()
     {
         if (!isLocalPlayer) return;
+        if (!_playerState.IsAlive) return;
 
         CheckOnGround();
 
@@ -203,18 +204,18 @@ public class CharacterMovement : NetworkBehaviour
         if (IsOnGround)
         {
             if (IsCrouching)
-                UIManager.SetCrosshairMovementSpread(0);
+                UI_GameHUD.SetCrosshairMovementSpread(0);
             else if (_lastMovementInput != Vector3.zero)
             {
                 if (IsWalking)
-                    UIManager.SetCrosshairMovementSpread(30 * _lastMovementInput.sqrMagnitude);
+                    UI_GameHUD.SetCrosshairMovementSpread(30 * _lastMovementInput.sqrMagnitude);
                 else
-                    UIManager.SetCrosshairMovementSpread(100 * _lastMovementInput.sqrMagnitude);
+                    UI_GameHUD.SetCrosshairMovementSpread(100 * _lastMovementInput.sqrMagnitude);
             }
             else
-                UIManager.SetCrosshairMovementSpread(5);
+                UI_GameHUD.SetCrosshairMovementSpread(5);
         }
         else
-            UIManager.SetCrosshairMovementSpread(200);
+            UI_GameHUD.SetCrosshairMovementSpread(200);
     }
 }

@@ -1,4 +1,5 @@
 using Mirror;
+using Steamworks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -15,19 +16,22 @@ using UnityEngine;
  */ 
 public class GameState : NetworkBehaviour
 {
+
     private static GameState instance;
     private void Awake()
     {
         instance = this;
         
     }
-    private void Start()
+    
+    public void StartGame()
     {
-        StartGame();
-    }
-    public static void StartGame()
-    {
-        instance.hasBegun = true;
+        hasBegun = true;
+
+        foreach (var item in _playerStates)
+        {
+            item.TargetInitialWeapon();
+        }        
     }
     [SyncVar][HideInInspector] public bool hasBegun;
     public static bool HasBegun => instance.hasBegun;
@@ -39,7 +43,16 @@ public class GameState : NetworkBehaviour
         if (ps != null && !PlayerStates.Contains(ps))
         {
             PlayerStates.Add(ps);
-            UIManager.RefreshStatistics();
+            UI_GameHUD.AddPlayerToStatistics(ps);
+
+            if (SteamMatchmaking.GetNumLobbyMembers(SteamLobby.Instance.CurrentLobbyId) == PlayerStates.Count)
+            {
+                // all members arrived
+                if (instance.isServer)
+                {
+                    instance.StartCoroutine(instance.CountdownStart());
+                }
+            }            
         }
     }
     public static void RemovePlayer(PlayerState ps)
@@ -47,7 +60,24 @@ public class GameState : NetworkBehaviour
         if (ps != null && PlayerStates.Contains(ps))
         {
             PlayerStates.Remove(ps);
-            UIManager.RefreshStatistics();
+            UI_GameHUD.RemovePlayerFromStatistics(ps);
         }
+    }
+
+    private IEnumerator CountdownStart()
+    {
+        RpcCountdown("3");
+        yield return new WaitForSecondsRealtime(1.0f);
+        RpcCountdown("2");
+        yield return new WaitForSecondsRealtime(1.0f);
+        RpcCountdown("1");
+        yield return new WaitForSecondsRealtime(1.0f);
+        RpcCountdown("");
+        StartGame();
+    }
+    [ClientRpc]
+    private void RpcCountdown(string str)
+    {
+        UI_GameHUD.SetCountdown(str);
     }
 }

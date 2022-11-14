@@ -134,7 +134,7 @@ public class WeaponInHand : MonoBehaviour
         HitScan(out directions);
 
         // generate the ray
-        //float spreadRadius = Random.Range(0.0f, UIManager.GetCrosshairSpread());
+        //float spreadRadius = Random.Range(0.0f, UI_GameHUD.GetCrosshairSpread());
         //float spreadAngle = Random.Range(0.0f, 2 * Mathf.PI);
         //Vector3 target = new Vector3(
         //    spreadRadius * Mathf.Cos(spreadAngle) / 1920.0f + 0.5f,
@@ -144,7 +144,7 @@ public class WeaponInHand : MonoBehaviour
         //target = Camera.main.ViewportPointToRay(target).origin + Camera.main.transform.forward * _identity.Data.EffectiveRange;
 
         //Debug.DrawLine(Camera.main.transform.position, target, Color.red, 5f);
-        //float spreadRadius = Random.Range(0.0f, UIManager.GetCrosshairSpread());
+        //float spreadRadius = Random.Range(0.0f, UI_GameHUD.GetCrosshairSpread());
         //float spreadAngle = Random.Range(0.0f, 2 * Mathf.PI);
         //Vector3 target = new Vector3(
         //    spreadRadius * Mathf.Cos(spreadAngle) / 1920.0f + 0.5f,
@@ -171,7 +171,7 @@ public class WeaponInHand : MonoBehaviour
         //    obj.transform.position = hit.point;
         //}
 
-        //float spreadRadius = Random.Range(0.0f, UIManager.GetCrosshairSpread() * 0.3f / 50f);
+        //float spreadRadius = Random.Range(0.0f, UI_GameHUD.GetCrosshairSpread() * 0.3f / 50f);
 
         //Debug.Log(Mathf.Cos(spreadAngle));
         //Vector3 viewpoint = new Vector3(
@@ -182,7 +182,7 @@ public class WeaponInHand : MonoBehaviour
         //Ray r = Camera.main.ViewportPointToRay(viewpoint);
         //Debug.DrawRay(r.origin, r.direction * 5f, Color.red, 3f);
 
-        //UIManager.SetCrosshairWeaponSpread(_identity.Data.FireSpread);
+        //UI_GameHUD.SetCrosshairWeaponSpread(_identity.Data.FireSpread);
         //if (_coroutineCrosshairRecover != null) StopCoroutine(_coroutineCrosshairRecover);
         //_coroutineCrosshairRecover = StartCoroutine(CrosshairRecover());
         if (RecoilValue == 0)
@@ -199,7 +199,7 @@ public class WeaponInHand : MonoBehaviour
             GetClampedRecoilRot(-5),
             _identity.Data.FireDelay,
             _identity.Data.RecoilRecoveryDuration.Evaluate(RecoilValue / _identity.Data.Ammo));
-        UIManager.SetCrosshairFireSpread(_identity.Data.CrosshairSpread * 2.0f, _identity.Data.FireDelay);
+        UI_GameHUD.SetCrosshairFireSpread(_identity.Data.CrosshairSpread * 2.0f, _identity.Data.FireDelay);
         StartCoroutine(ContinuousFiringDelay());
     }
 
@@ -226,7 +226,7 @@ public class WeaponInHand : MonoBehaviour
             GetClampedRecoilRot(-5),
             _identity.Data.FireDelay,
             _identity.Data.RecoilRecoveryDuration.Evaluate(RecoilValue / _identity.Data.Ammo));
-        UIManager.SetCrosshairFireSpread(_identity.Data.CrosshairSpread * 2.0f, _identity.Data.FireDelay);
+        UI_GameHUD.SetCrosshairFireSpread(_identity.Data.CrosshairSpread * 2.0f, _identity.Data.FireDelay);
         StartCoroutine(ContinuousFiringDelay());
     }
 
@@ -247,7 +247,7 @@ public class WeaponInHand : MonoBehaviour
     //    while (time < duration)
     //    {
     //        time = Mathf.Min(duration, time + Time.deltaTime);
-    //        UIManager.SetCrosshairWeaponSpread(Mathf.Lerp(_identity.Data.FireSpread, _identity.Data.BasicSpread, time / duration));
+    //        UI_GameHUD.SetCrosshairWeaponSpread(Mathf.Lerp(_identity.Data.FireSpread, _identity.Data.BasicSpread, time / duration));
     //        yield return null;
     //    }
     //}
@@ -348,8 +348,8 @@ public class WeaponInHand : MonoBehaviour
         int val = Mathf.Min(_identity.BackupAmmo, _identity.Data.Ammo - _identity.CurrentAmmo);
         _identity.CurrentAmmo += val;
         _identity.BackupAmmo -= val;
-        UIManager.SetAmmo(_identity.CurrentAmmo);
-        UIManager.SetBackupAmmo(_identity.BackupAmmo);
+        UI_GameHUD.SetAmmo(_identity.CurrentAmmo);
+        UI_GameHUD.SetBackupAmmo(_identity.BackupAmmo);
     }
     public virtual void EndReload()
     {

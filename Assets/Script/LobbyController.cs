@@ -136,7 +136,15 @@ public class LobbyController : MonoBehaviour
 
     public void UpdateLobbyName()
     {
-        _tmpLobbyName.SetText(SteamMatchmaking.GetLobbyData(_lobbyId, SteamLobby.keyLobbyName));       
+        string lobby;
+        if ((lobby = SteamMatchmaking.GetLobbyData(_lobbyId, SteamLobby.keyLobbyName)) != "")
+        {
+            _tmpLobbyName.SetText(lobby);
+        }
+        else
+        {
+            _tmpLobbyName.SetText($"<#FFF200>{SteamFriends.GetFriendPersonaName(SteamMatchmaking.GetLobbyOwner(_lobbyId))}</color>'s Lobby");
+        }
     }
     private void InitLobbyId()
     {
