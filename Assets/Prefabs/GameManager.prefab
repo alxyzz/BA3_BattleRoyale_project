@@ -46,6 +46,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _wpnDatabase:
   - {fileID: 11400000, guid: 7df07f6eff11747499d2630e98891ed6, type: 2}
+  - {fileID: 11400000, guid: 091c81753cd91de4fb7a7ac32db00ee0, type: 2}
   - {fileID: 11400000, guid: 2324e3beac4147a489a9abb22a53d5e3, type: 2}
+  - {fileID: 11400000, guid: a9229ad43af5b9745afcdad6aee93a20, type: 2}
   - {fileID: 11400000, guid: 4faef5a97a553414a891c08c057415d6, type: 2}
+  - {fileID: 11400000, guid: 5e271138878d9344ba03ee10e6a27f17, type: 2}
+  - {fileID: 11400000, guid: 4cb3a7bd2d10b61438db2e2fac5031f4, type: 2}
   - {fileID: 11400000, guid: 664c7f8394dfaa04686b2341a7f22a64, type: 2}
+  - {fileID: 11400000, guid: 90d04ddf2f47b744e9447398a7a943fb, type: 2}
+  - {fileID: 11400000, guid: 896d5a7e2d0669449a7f0188e1b65bbd, type: 2}

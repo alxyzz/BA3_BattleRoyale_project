@@ -140,6 +140,7 @@ MonoBehaviour:
   health: 0
   kills: 0
   bodyColour: {r: 0, g: 0, b: 0, a: 0}
+  ping: 0
   curWpnIndex: -1
   curWpnDbIndex: -1
 --- !u!143 &2258259429533691904

@@ -53,6 +53,7 @@ public class WeaponInHand : MonoBehaviour
     public bool IsHolstered { get; set; } = true;
     private bool _isFiring = false;
     private bool _isReloading = false;
+    private bool _isInspected = false;
     private float _recoilValue;
     private float RecoilValue
     {
@@ -299,7 +300,14 @@ public class WeaponInHand : MonoBehaviour
     //    return _identity.Data.DamageBody;
 
     //}
-
+    public bool CanInspect()
+    {
+        return !_isInspected && !_isFiring && !_isReloading;
+    }
+    public void SetInspect(bool inspect)
+    {
+        _isInspected = inspect;
+    }
     public string GetName()
     {
         return _identity.Data.WeaponName;
