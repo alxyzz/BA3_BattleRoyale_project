@@ -18,6 +18,7 @@ public class RaycastHitComparer : IComparer<RaycastHit>
     {
         return x.distance.CompareTo(y.distance);
     }
+
 }
 
 /* A Player State is the state of a participant in the game.
@@ -28,7 +29,7 @@ public class RaycastHitComparer : IComparer<RaycastHit>
  *   Score
  * Player States for all players exist on all machines and can replicate data from the server to the client to keep things in sync.
 */
-public class PlayerState : NetworkBehaviour, IDamageable
+public class PlayerState : NetworkBehaviour, IDamageable, ISubject
 {
     public override void OnStartServer()
     {
@@ -64,9 +65,11 @@ public class PlayerState : NetworkBehaviour, IDamageable
     private void Awake()
     {
         _charaAnimHandler = GetComponent<CharacterAnimHandler>();
+      
     }
     private void Start()
     {
+        _observers.Add(GameState.instance);
         if (!isLocalPlayer) return;
         Debug.Log("Local player start!");
     }
@@ -89,6 +92,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     [SerializeField] private Transform _fpSocketWeaponRight;
     // [SerializeField] private Animator _firstPersonAnimator;
     // [SerializeField] private Animator _thirdPersonAnimator;
+    private List<IObserver> _observers = new List<IObserver>();
     private CharacterAnimHandler _charaAnimHandler;
     private readonly int _aFire = Animator.StringToHash("Fire");
     private readonly int _aReload = Animator.StringToHash("Reload");
@@ -461,6 +465,26 @@ public class PlayerState : NetworkBehaviour, IDamageable
                 }
             }
         }
+
         onDied?.Invoke();
+    }
+    void ISubject.Attach(IObserver observer)
+    {
+        _observers.Add(observer);
+    }
+
+    void ISubject.Detach(IObserver observer)
+    {
+        _observers.Remove(observer);
+    }
+
+    
+    void ISubject.Notify()
+    {
+        foreach (IObserver item in _observers)
+        {
+            Debug.Log("Notified observer: " + item.ToString());
+            item.UpdateState(this);
+        }
     }
 }

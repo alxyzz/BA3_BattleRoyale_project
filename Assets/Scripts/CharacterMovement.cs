@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class CharacterMovement : NetworkBehaviour, ISubject
+public class CharacterMovement : NetworkBehaviour
 {
     // [Header("Components")]
     // [SerializeField] private Animator _firstPersonAnimator;
@@ -12,7 +12,7 @@ public class CharacterMovement : NetworkBehaviour, ISubject
     private CharacterAnimHandler _charaAnimHandler;
     private CharacterController _charaCtrl;
     private PlayerState _playerState;
-    private List<IObserver> _footStepObservers = new List<IObserver>();
+
     private readonly int _aSpeedLevel = Animator.StringToHash("SpeedLevel");
     private readonly int _aMovementMultiplier = Animator.StringToHash("MovementMultiplier");
 
@@ -99,25 +99,6 @@ public class CharacterMovement : NetworkBehaviour, ISubject
             
         }
         _charaCtrl.Move(_moveVelocity * Time.deltaTime);
-
-
-
-        //footsteps
-        if (_lastMovementInput != Vector3.zero && !_movedPreviously)
-        {
-
-            Notify();
-            // _movedPreviously = true;
-            _movedPreviously = true;
-
-        }
-        else if (_lastMovementInput == Vector3.zero && _movedPreviously == true)
-        {
-            Notify();
-            _movedPreviously = false;
-
-        }
-        ////end footsteps
 
         // Update jumping
         if (_charaCtrl.isGrounded && _inAirVelocity.y < 0)
@@ -261,47 +242,5 @@ public class CharacterMovement : NetworkBehaviour, ISubject
         else
             UI_GameHUD.SetCrosshairMovementSpread(200);
     }
-
-
-
-    #region Footsteps
-
-    public bool isMoving { get; protected set; }
-    
-
-    //rework these if another feature that requires the observer pattern is required
-    
-    public void Attach(IObserver observer)
-    {//we attach the LocalPlayerController to the list of things we need to keep updated
-        Debug.Log("Attached observer: " + observer.ToString());
-        _footStepObservers.Add(observer);
-    }
-
-    public void Detach(IObserver observer)
-    {
-        Debug.Log("Detached observer: " + observer.ToString());
-        _footStepObservers.Remove(observer);
-    }
-
-    public void Notify()
-    {
-        foreach (IObserver item in _footStepObservers)
-        {
-            Debug.Log("Notified observer: " + item.ToString());
-            item.UpdateState(this);
-        }
-    }
-
-    #endregion
-
-
-
-
-
-
-
-
-
-
 }
 
