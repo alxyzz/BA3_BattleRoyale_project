@@ -9,6 +9,6 @@ public class TpAnimEventHandler : CharacterAnimEventHandler
 
     private void FootStep()
     {
-        GetComponentInParent<LocalPlayerController>().PlayFootStepForEveryone();
+        GetComponentInParent<LocalPlayerController>().NotifyServerOfFootstep();
     }
 }
