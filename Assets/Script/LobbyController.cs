@@ -219,7 +219,7 @@ public class LobbyController : MonoBehaviour
             {
                 Debug.Log("Can start game!");
                 SteamMatchmaking.SetLobbyJoinable(_lobbyId, false);
-                MyNetworkManager.singleton.ServerChangeScene("SampleScene");
+                MyNetworkManager.singleton.ServerChangeScene("MainMap");
             }
         }
         else
