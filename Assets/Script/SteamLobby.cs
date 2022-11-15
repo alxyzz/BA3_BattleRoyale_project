@@ -10,6 +10,7 @@ using System;
 public class SteamLobby : MonoBehaviour
 {
     public static SteamLobby Instance { get; private set; }
+    public static string SceneToLoad;
 
     // Callbacks
     public Action RecoverUI;

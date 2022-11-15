@@ -177,6 +177,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
             EndInspect();
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
+
             CurrentWeaponInHand.FireBurst(out List<Vector3> directions);
             UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
 

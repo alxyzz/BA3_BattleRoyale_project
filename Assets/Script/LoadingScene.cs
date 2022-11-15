@@ -8,21 +8,17 @@ public class LoadingScene : MonoBehaviour
 {
     public GameObject loadingScreen;
     public Image loadingBar;
-    public int sceneId;
 
     private void Start()
     {
-        LoadScrene(sceneId);
+        StartCoroutine(LoadSceneAsync(SteamLobby.SceneToLoad));
     }
 
-    public void LoadScrene(int sceneId)
-    {
-        StartCoroutine(LoadSceneAsync(sceneId));
-    }
 
-    IEnumerator LoadSceneAsync(int sceneId)
+    IEnumerator LoadSceneAsync(string sceneName)
     {
-        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneId);
+        AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
+        // operation.allowSceneActivation = false;
 
         loadingScreen.SetActive(true);
 
@@ -32,5 +28,6 @@ public class LoadingScene : MonoBehaviour
             loadingBar.fillAmount = progressValue;
             yield return null;
         }
+
     }
 }
