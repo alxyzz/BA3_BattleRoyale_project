@@ -19,14 +19,14 @@ public class WeaponOverworld : NetworkBehaviour, IInteractable
     }
     private void Awake()
     {
-        CurrentAmmo = _data.Ammo;
-        BackupAmmo = _data.BackupAmmo;
+        //CurrentAmmo = _data.Ammo;
+        //BackupAmmo = _data.BackupAmmo;
         _pfbInfoWidget = Resources.Load<GameObject>("UI/Game/InfoWidget");
     }
 
     public void BeInteracted(PlayerState pState)
     {
-        pState.PickUpWeapon(new WeaponIdentityData(_data, CurrentAmmo, BackupAmmo));
+        pState.PickUpWeapon(_data, CurrentAmmo, BackupAmmo);
         CmdDestroy();
     }
 

@@ -73,7 +73,7 @@ public class LocalPlayerController : NetworkBehaviour
     [Header("Components")]
     [SerializeField] private Transform _thirdPersonRoot;
     [SerializeField] private Transform _firstPersonRoot;
-    [SerializeField] private AudioSource _soundPlayer;
+    // [SerializeField] private AudioSource _soundPlayer;
 
     public Vector3 FirstPersonForward => _firstPersonRoot.forward;
     [SerializeField] private Transform _firstPersonArm;
@@ -94,13 +94,12 @@ public class LocalPlayerController : NetworkBehaviour
     {
         _charaMovement = GetComponent<CharacterMovement>();
         _playerState = GetComponent<PlayerState>();
-        _soundPlayer = GetComponent<AudioSource>();
-       
     }
 
     private void Start()
     {
         _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+
         if (isLocalPlayer)
         {
             _tpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
@@ -115,17 +114,19 @@ public class LocalPlayerController : NetworkBehaviour
 
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
+
+            // Crouch callback
+            _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
+            _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };
+
+            // Die callback
+            _playerState.onDied += Die;
         }
         else
         {
-            // _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
-            // _firstPersonRoot.gameObject.SetActive(false);
             Destroy(this);
         }
-
     }
-
-
 
     private void UpdateHandyDandyDebugQuitForEscape()
     {
@@ -164,7 +165,8 @@ public class LocalPlayerController : NetworkBehaviour
         // test
         if (Input.GetKeyDown(KeyCode.K))
         {
-            _playerState.ApplyDamage(10, _playerState, null, DamageType.DEFAULT);
+            // MyNetworkManager.singleton.ServerChangeScene("MainMap");
+            _playerState.ApplyDamage(100, _playerState, null, DamageType.DEFAULT);
         }
     }
 
@@ -184,18 +186,18 @@ public class LocalPlayerController : NetworkBehaviour
     
     
 
-    [Command]
-    public void NotifyServerOfFootstep()
-    {
-        PlayFootStepForEveryone();
-    }
+    //[Command]
+    //public void NotifyServerOfFootstep()
+    //{
+    //    PlayFootStepForEveryone();
+    //}
 
-    [ClientRpc]
-    public void PlayFootStepForEveryone()
-    {
+    //[ClientRpc]
+    //public void PlayFootStepForEveryone()
+    //{
 
-        _soundPlayer.PlayOneShot(SoundList.GetRandomFootstep());
-    }
+    //    _soundPlayer.PlayOneShot(SoundList.GetRandomFootstep());
+    //}
 
     
     #endregion

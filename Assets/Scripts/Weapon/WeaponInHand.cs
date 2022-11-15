@@ -114,7 +114,7 @@ public class WeaponInHand : MonoBehaviour
 
     protected virtual void HitScan(out List<Vector3> directions)
     {
-        RaycastHit[] hits = new RaycastHit[10];
+        // RaycastHit[] hits = new RaycastHit[10];
         Vector3 dir = RecoilRot * _playerCtrl.FirstPersonForward;
         Vector3 center = Camera.main.transform.position + dir;
         float r = Random.Range(0f, _identity.Data.FireSpread) * _playerCtrl.CharaMovementComp.SpreadMultiplier;
@@ -134,58 +134,6 @@ public class WeaponInHand : MonoBehaviour
         // 根据当前 _recoilValue 计算受后坐力影响得到的偏移射线
         HitScan(out directions);
 
-        // generate the ray
-        //float spreadRadius = Random.Range(0.0f, UI_GameHUD.GetCrosshairSpread());
-        //float spreadAngle = Random.Range(0.0f, 2 * Mathf.PI);
-        //Vector3 target = new Vector3(
-        //    spreadRadius * Mathf.Cos(spreadAngle) / 1920.0f + 0.5f,
-        //    spreadRadius * Mathf.Sin(spreadAngle) / 1080.0f + 0.5f,
-        //    0.0f
-        //    );
-        //target = Camera.main.ViewportPointToRay(target).origin + Camera.main.transform.forward * _identity.Data.EffectiveRange;
-
-        //Debug.DrawLine(Camera.main.transform.position, target, Color.red, 5f);
-        //float spreadRadius = Random.Range(0.0f, UI_GameHUD.GetCrosshairSpread());
-        //float spreadAngle = Random.Range(0.0f, 2 * Mathf.PI);
-        //Vector3 target = new Vector3(
-        //    spreadRadius * Mathf.Cos(spreadAngle) / 1920.0f + 0.5f,
-        //    spreadRadius * Mathf.Sin(spreadAngle) / 1080.0f + 0.5f,
-        //    0.0f
-        //    );
-        //Ray r = Camera.main.ViewportPointToRay(target);
-        //if (Physics.Raycast(
-        //    r,
-        //    out RaycastHit hit,
-        //    _identity.Data.MaxRange))
-        //{
-        //    GameObject obj = Instantiate(Resources.Load<GameObject>("test"));
-        //    obj.transform.position = hit.point;
-        //}
-        //target = Camera.main.ViewportToWorldPoint(target) + Camera.main.transform.forward * 20f;
-        //if (Physics.Raycast(
-        //    Camera.main.transform.position,
-        //    target - Camera.main.transform.position,
-        //    out RaycastHit hit,
-        //    _identity.Data.MaxRange))
-        //{
-        //    GameObject obj = Instantiate(Resources.Load<GameObject>("test"));
-        //    obj.transform.position = hit.point;
-        //}
-
-        //float spreadRadius = Random.Range(0.0f, UI_GameHUD.GetCrosshairSpread() * 0.3f / 50f);
-
-        //Debug.Log(Mathf.Cos(spreadAngle));
-        //Vector3 viewpoint = new Vector3(
-        //    spreadRadius * Mathf.Cos(spreadAngle) / 1920.0f + 0.5f,
-        //    spreadRadius * Mathf.Sin(spreadAngle) / 1080.0f + 0.5f
-        //    );
-        //Debug.Log(viewpoint);
-        //Ray r = Camera.main.ViewportPointToRay(viewpoint);
-        //Debug.DrawRay(r.origin, r.direction * 5f, Color.red, 3f);
-
-        //UI_GameHUD.SetCrosshairWeaponSpread(_identity.Data.FireSpread);
-        //if (_coroutineCrosshairRecover != null) StopCoroutine(_coroutineCrosshairRecover);
-        //_coroutineCrosshairRecover = StartCoroutine(CrosshairRecover());
         if (RecoilValue == 0)
         {
             RecoilValue = 1;
@@ -214,15 +162,6 @@ public class WeaponInHand : MonoBehaviour
 
         RecoilValue += 1;
 
-        //Camera.main.transform.localRotation =
-        //Quaternion.Euler(
-        //    Mathf.Clamp(_identity.Data.RecoilVertical.Evaluate(_recoilValue) * -1, -5, 0),
-        //    _identity.Data.RecoilHorizontal.Evaluate(_recoilValue),
-        //    0f
-        //   );
-
-        //Camera.main.transform.localRotation = GetClampedRecoilRot(-5);
-        //Camera.main.GetComponent<CameraShake>().Shake(_identity.Data.FireDelay);
         Camera.main.GetComponent<CameraShake>().ShakeTo(
             GetClampedRecoilRot(-5),
             _identity.Data.FireDelay,

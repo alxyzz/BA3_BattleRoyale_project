@@ -51,6 +51,13 @@ public class LobbyController : MonoBehaviour
         _lobbyId = SteamLobby.Instance.CurrentLobbyId;
         _isOwner = SteamMatchmaking.GetLobbyOwner(_lobbyId) == SteamUser.GetSteamID();
         _isReady = _isOwner;
+        if (_isOwner)
+        {
+            SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keyGameStart, "0");
+            SteamMatchmaking.SetLobbyJoinable(_lobbyId, true);
+        }
+
+
         SteamMatchmaking.SetLobbyMemberData(
             _lobbyId,
             SteamLobby.keyReady,
@@ -212,6 +219,11 @@ public class LobbyController : MonoBehaviour
 
     public void StartOrReady()
     {
+        if (SteamMatchmaking.GetLobbyData(_lobbyId, SteamLobby.keyGameStart) != "0")
+        {
+            MasterUIManager.AddPopupHint("The game has already begun.");
+            return;
+        }
 
         if (_isOwner)
         {
@@ -219,8 +231,11 @@ public class LobbyController : MonoBehaviour
             {
                 Debug.Log("Can start game!");
                 SteamMatchmaking.SetLobbyJoinable(_lobbyId, false);
-                // SteamLobby.SceneToLoad = "MainMap";
+                SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keyGameStart, "1");
+                SteamLobby.SceneToLoad = "MainMap";
+                // MyNetworkManager.singleton.ServerChangeScene("Lobby");
                 MyNetworkManager.singleton.ServerChangeScene("MainMap");
+                // MyNetworkManager.singleton.ServerChangeScene("SampleScene");
             }
         }
         else

@@ -17,17 +17,21 @@ public class LoadingScene : MonoBehaviour
 
     IEnumerator LoadSceneAsync(string sceneName)
     {
+        yield return null;
+
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneName);
-        // operation.allowSceneActivation = false;
+        operation.allowSceneActivation = false;
 
         loadingScreen.SetActive(true);
 
         while (!operation.isDone)
         {
-            float progressValue = Mathf.Clamp01(operation.progress / 0.9f);
-            loadingBar.fillAmount = progressValue;
+            loadingBar.fillAmount = operation.progress;
+            if (operation.progress >= 0.9f)
+            {
+                operation.allowSceneActivation = true;
+            }
             yield return null;
         }
-
     }
 }

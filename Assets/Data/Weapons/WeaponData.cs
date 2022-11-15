@@ -100,4 +100,6 @@ public class WeaponData : ScriptableObject
     [Header("Miscellaneous")]
     [SerializeField] private float _movementMultiplier;
     public float MovementMultiplier => _movementMultiplier;
+    [SerializeField] private AudioClip _fireSound;
+    public AudioClip FireSound => _fireSound;
 }
