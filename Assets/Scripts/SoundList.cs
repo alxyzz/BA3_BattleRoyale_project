@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+[Serializable]
+public struct NamedAudioClip
+{
+    public string name;
+    public AudioClip soundclip;
+}
+
 public class SoundList : MonoBehaviour
 {
 
@@ -18,22 +25,18 @@ public class SoundList : MonoBehaviour
         instance = this;
         DontDestroyOnLoad(gameObject);
     }
-    struct namedAudioClip
-    {
-        public string name;
-        public AudioClip soundclip;
-    }
-    [SerializeField] private List<namedAudioClip> _genericAudioDatabase;
+   
+    [SerializeField] private List<NamedAudioClip> _genericAudioDatabase;
     [SerializeField] private List<AudioClip> _footsteps;
     public static AudioClip GetSound(string soundName)
     {
 
-        return instance._genericAudioDatabase.Where(i => i.name == soundName).FirstOrDefault().soundclip; ;
+        return instance._genericAudioDatabase.Where(i => i.name == soundName).FirstOrDefault().soundclip;
     }
     public static AudioClip GetRandomFootstep()
     {
-        //Debug.Log("got random footstep");
-        return instance._footsteps[UnityEngine.Random.Range(0, instance._footsteps.Count - 1)];
+        
+        return instance._footsteps[UnityEngine.Random.Range(0, instance._footsteps.Count)];
     }
 }
 
