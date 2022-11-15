@@ -75,15 +75,16 @@ public class UI_Panel_Statistics : UI_Widget
     }
     public void RemovePlayerSlot(PlayerState ps)
     {
-        foreach (var item in _slots)
+        for (int i = 0; i < _slots.Count; i++)
         {
-            if (item.Player == ps)
+            if (_slots[i] != null && _slots[i].Player == ps)
             {
-                Destroy(item.gameObject);
-                _slots.Remove(item);
+                GameObject obj = _slots[i].gameObject;
+                _slots.RemoveAt(i);
+                Destroy(obj);
+                return;
             }            
         }
-
     }
 
     //public void Reorder()

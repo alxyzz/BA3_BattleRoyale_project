@@ -1,6 +1,10 @@
+using Mirror;
+using Steamworks;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class UI_GameHUD : MonoBehaviour
 {
@@ -16,10 +20,28 @@ public class UI_GameHUD : MonoBehaviour
     }
 
     [Header("Countdown")]
-    [SerializeField] private TextMeshProUGUI _tmpCountdown;
+    [SerializeField] private TextMeshProUGUI _tmpBeginplayCountdown;
+    [SerializeField] private TextMeshProUGUI _tmpZoneCountdown;
+
     public static void SetCountdown(string str)
     {
-        instance._tmpCountdown.SetText(str);
+        instance._tmpBeginplayCountdown.SetText(str);
+    }
+    public static void SetZoneCountdown(int val, bool urgent = false)
+    {
+        instance._tmpZoneCountdown.color = urgent ? Color.red : Color.white;
+        if (null != instance._cZoneCountdown) instance.StopCoroutine(instance._cZoneCountdown);
+        instance._cZoneCountdown = instance.StartCoroutine(instance.ZoneCountdown(val));
+    }
+    Coroutine _cZoneCountdown;
+    private IEnumerator ZoneCountdown(int val)
+    {
+        while (val > 0)
+        {
+            _tmpZoneCountdown.SetText(val.ToString() + " s");
+            val--;
+            yield return new WaitForSeconds(1.0f);
+        }
     }
 
     [Header("Interaction")]
@@ -107,37 +129,31 @@ public class UI_GameHUD : MonoBehaviour
     }
 
     [Header("Round End")]
-    private List<string> _VictoryBlurbs = new();
-    private GameObject _VictoryPopup;
-    private TextMeshPro _VictoryPopupUsername;
-    private TextMeshPro _VictoryPopupBlurb;
-    private GameObject _TiePopup;
+    [SerializeField] private GameObject _winnerPanel;
+    [SerializeField] private RawImage _imgWinnerIcon;
+    [SerializeField] private TextMeshProUGUI _tmpWinnerName;
+    [SerializeField] private Button _btnReturnToLobby;
 
-    public static void RegisterRefs(GameObject vPop, TextMeshPro vUser, TextMeshPro vBlurb, GameObject tPop)
+    public static void ShowWinner(PlayerState ps)
     {
-        instance._VictoryPopup = vPop;
-
-        instance._VictoryPopupUsername = vUser;
-        instance._VictoryPopupBlurb = vBlurb;
-        instance._TiePopup = tPop;
-
+        instance._winnerPanel.SetActive(true);
+        Callback<AvatarImageLoaded_t>.Create(instance.OnWinnerIconLoaded);
+        int ImageID = SteamFriends.GetLargeFriendAvatar(ps.SteamId);
+        if (ImageID != -1) instance._imgWinnerIcon.texture = SteamLobby.GetSteamImageAsTexture(ImageID);
+        instance._tmpWinnerName.SetText(SteamFriends.GetFriendPersonaName(ps.SteamId));
+        instance._btnReturnToLobby.interactable =
+            SteamMatchmaking.GetLobbyOwner(SteamLobby.Instance.CurrentLobbyId) == SteamUser.GetSteamID();
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
-
-    public static void PopUpVictory(string user)
+    private void OnWinnerIconLoaded(AvatarImageLoaded_t callback)
     {
-        instance._VictoryPopupUsername.text = user;
-        instance._VictoryPopupBlurb.text = instance._VictoryBlurbs[Random.Range(0, instance._VictoryBlurbs.Count)];
-
-        instance._VictoryPopup.SetActive(true);
-
+        instance._imgWinnerIcon.texture = SteamLobby.GetSteamImageAsTexture(callback.m_iImage);
     }
-    public static void PopUpTie()
+    public void OnClickReturnToLobby()
     {
-        instance._TiePopup.SetActive(true);
+        MyNetworkManager.singleton.ServerChangeScene("Lobby");
     }
-
-
-
     public static void SetUIEnabled(bool enabled)
     {
         instance._pnlAmmo.SetActive(enabled);
@@ -145,4 +161,5 @@ public class UI_GameHUD : MonoBehaviour
         instance._inventory.gameObject.SetActive(enabled);
         instance._crosshair.gameObject.SetActive(enabled);
     }
+    
 }

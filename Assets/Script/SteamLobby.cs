@@ -23,6 +23,7 @@ public class SteamLobby : MonoBehaviour
     // Variables
     public static readonly string keyHostAddress = "HostAddress";
     public static readonly string keyLobbyName = "LobbyName";
+    public static readonly string keyGameStart = "GameStart";
 
     public static readonly string keyReady = "Ready";
 
@@ -48,6 +49,27 @@ public class SteamLobby : MonoBehaviour
         Callback<LobbyCreated_t>.Create(OnLobbyCreated);
         Callback<GameLobbyJoinRequested_t>.Create(OnJoinRequest);
         Callback<LobbyEnter_t>.Create(OnLobbyEntered);
+    }
+    public static Texture2D GetSteamImageAsTexture(int iImage)
+    {
+        Texture2D texture = null;
+
+        bool isValid = SteamUtils.GetImageSize(iImage, out uint width, out uint height);
+        if (isValid)
+        {
+            byte[] image = new byte[width * height * 4];
+
+            isValid = SteamUtils.GetImageRGBA(iImage, image, (int)(width * height * 4));
+
+            if (isValid)
+            {
+                texture = new Texture2D((int)width, (int)height, TextureFormat.RGBA32, false, true);
+                texture.LoadRawTextureData(image);
+                texture.Apply();
+            }
+        }
+        // _avatarRecieved = true;
+        return texture;
     }
 
     public void HostLobby()
@@ -83,11 +105,11 @@ public class SteamLobby : MonoBehaviour
     private void OnLobbyEntered(LobbyEnter_t callback)
     {
         Debug.Log($"On Lobby entered. Response : {(EChatRoomEnterResponse)callback.m_EChatRoomEnterResponse}");
-
+        CSteamID lobbyId = new CSteamID(callback.m_ulSteamIDLobby);
         switch ((EChatRoomEnterResponse)callback.m_EChatRoomEnterResponse)
         {
             case EChatRoomEnterResponse.k_EChatRoomEnterResponseSuccess:
-                CurrentLobbyId = new CSteamID(callback.m_ulSteamIDLobby);
+                CurrentLobbyId = lobbyId;
                 
                 if (SteamMatchmaking.GetLobbyOwner(CurrentLobbyId) == SteamUser.GetSteamID())
                 {
@@ -103,6 +125,10 @@ public class SteamLobby : MonoBehaviour
                 MasterUIManager.AddPopupHint("Lobby does not exist...");
                 break;
             case EChatRoomEnterResponse.k_EChatRoomEnterResponseNotAllowed:
+                if (SteamMatchmaking.GetLobbyData(lobbyId, keyGameStart) != "0")
+                {
+                    MasterUIManager.AddPopupHint("The game has already begun.");
+                }
                 break;
             case EChatRoomEnterResponse.k_EChatRoomEnterResponseFull:
                 MasterUIManager.AddPopupHint("The lobby is full...");

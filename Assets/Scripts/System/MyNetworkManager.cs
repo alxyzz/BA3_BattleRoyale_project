@@ -130,10 +130,10 @@ public class MyNetworkManager : NetworkManager
     {
         base.OnClientSceneChanged();
 
-        if (SceneManager.GetActiveScene().name == "MainMap" || SceneManager.GetActiveScene().name == "SampleScene")
-        {
-            NetworkClient.AddPlayer();
-        }
+        //if (SceneManager.GetActiveScene().name == "MainMap" || SceneManager.GetActiveScene().name == "SampleScene")
+        //{
+        //    NetworkClient.AddPlayer();
+        //}
         // Debug.Log(SceneManager.GetActiveScene().name);
         
         // NetworkClient.AddPlayer();

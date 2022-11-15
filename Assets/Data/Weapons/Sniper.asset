@@ -169,4 +169,5 @@ MonoBehaviour:
   _reloadMultiplier: 1
   _ammo: 5
   _backupAmmo: 40
-  _movementMultiplier: 0.4
+  _movementMultiplier: 0.65
+  _fireSound: {fileID: 8300000, guid: 7a7ef1bca03038843a9808c35ad8a2f8, type: 3}

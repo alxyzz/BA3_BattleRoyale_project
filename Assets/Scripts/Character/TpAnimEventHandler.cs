@@ -4,11 +4,21 @@ using UnityEngine;
 
 public class TpAnimEventHandler : CharacterAnimEventHandler
 {
-
-
+    private AudioSource _audioSource;
+    private CharacterMovement _charaMovement;
+    protected override void Awake()
+    {
+        base.Awake();
+        _audioSource = GetComponentInParent<AudioSource>();
+        _charaMovement = GetComponentInParent<CharacterMovement>();
+    }
 
     private void FootStep()
     {
-        GetComponentInParent<LocalPlayerController>().NotifyServerOfFootstep();
+        if (!_charaMovement.IsCrouching && !_charaMovement.IsWalking)            
+        {
+            _audioSource.PlayOneShot(SoundList.GetRandomFootstep());
+        }
+        // GetComponentInParent<LocalPlayerController>().NotifyServerOfFootstep();
     }
 }

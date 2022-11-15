@@ -1114,10 +1114,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 4988083666610692221, guid: 0fb5ba311b63b1a4d9bbf63ea2aa2cb4, type: 3}
-      propertyPath: _genericAudioDatabase.Array.size
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4988083666610692222, guid: 0fb5ba311b63b1a4d9bbf63ea2aa2cb4, type: 3}
       propertyPath: m_RootOrder
       value: 7

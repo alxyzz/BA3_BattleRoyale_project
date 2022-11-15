@@ -51,35 +51,15 @@ public class UI_Lobby_PlayerItem : MonoBehaviour
         {
             return;
         }
-        _imgIcon.texture = GetSteamImageAsTexture(ImageID);
+        _imgIcon.texture = SteamLobby.GetSteamImageAsTexture(ImageID);
     }
-    private Texture2D GetSteamImageAsTexture(int iImage)
-    {
-        Texture2D texture = null;
-
-        bool isValid = SteamUtils.GetImageSize(iImage, out uint width, out uint height);
-        if (isValid)
-        {
-            byte[] image = new byte[width * height * 4];
-
-            isValid = SteamUtils.GetImageRGBA(iImage, image, (int)(width * height * 4));
-
-            if (isValid)
-            {
-                texture = new Texture2D((int)width, (int)height, TextureFormat.RGBA32, false, true);
-                texture.LoadRawTextureData(image);
-                texture.Apply();
-            }
-        }
-        // _avatarRecieved = true;
-        return texture;
-    }
+    
 
     private void OnImageLoaded(AvatarImageLoaded_t callback)
     {
         if (callback.m_steamID == _playerId)
         {
-            _imgIcon.texture = GetSteamImageAsTexture(callback.m_iImage);
+            _imgIcon.texture = SteamLobby.GetSteamImageAsTexture(callback.m_iImage);
         }
     }
 

@@ -4,13 +4,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Security.Principal;
+using UnityEditor.Rendering.LookDev;
 using UnityEngine;
-using UnityEngine.Animations;
 using UnityEngine.Rendering;
-using UnityEngine.UIElements;
-using static UnityEditor.Progress;
 
 public class RaycastHitComparer : IComparer<RaycastHit>
 {
@@ -18,7 +15,6 @@ public class RaycastHitComparer : IComparer<RaycastHit>
     {
         return x.distance.CompareTo(y.distance);
     }
-
 }
 
 /* A Player State is the state of a participant in the game.
@@ -29,7 +25,7 @@ public class RaycastHitComparer : IComparer<RaycastHit>
  *   Score
  * Player States for all players exist on all machines and can replicate data from the server to the client to keep things in sync.
 */
-public class PlayerState : NetworkBehaviour, IDamageable, ISubject
+public class PlayerState : NetworkBehaviour, IDamageable
 {
     public override void OnStartServer()
     {
@@ -38,6 +34,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
         kills = 0;
         ping = -1;
     }
+
     public override void OnStartClient()
     {
         base.OnStartClient();
@@ -53,6 +50,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
+        SteamId = SteamUser.GetSteamID();
         CmdSetNickname(SteamFriends.GetPersonaName());
         _cUpdatePing = StartCoroutine(UpdatePing());
     }
@@ -64,14 +62,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
 
     private void Awake()
     {
-        _charaAnimHandler = GetComponent<CharacterAnimHandler>();
-      
-    }
-    private void Start()
-    {
-        _observers.Add(GameState.instance);
-        if (!isLocalPlayer) return;
-        Debug.Log("Local player start!");
+        _charaAnimHandler = GetComponent<CharacterAnimHandler>();      
     }
 
     [TargetRpc]
@@ -80,9 +71,10 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
         UI_GameHUD.SetUIEnabled(true);
 
         GetComponent<LocalPlayerController>().LocalStartGame();
+
         // initial weapon
         WeaponData initData = LevelManager.Instance.initialWeapon;
-        PickUpWeapon(new WeaponIdentityData(initData, initData.Ammo, initData.BackupAmmo));
+        PickUpWeapon(initData, initData.Ammo, initData.BackupAmmo);
     }
 
     [Header("Components")]
@@ -90,6 +82,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
     [SerializeField] private Transform _tpSocketWeaponRight;
     [SerializeField] private Transform _fpSocketWeaponLeft;
     [SerializeField] private Transform _fpSocketWeaponRight;
+    [SerializeField] private AudioSource _weaponAudioSource;
     // [SerializeField] private Animator _firstPersonAnimator;
     // [SerializeField] private Animator _thirdPersonAnimator;
     private List<IObserver> _observers = new List<IObserver>();
@@ -99,7 +92,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
     private readonly int _aUnholster = Animator.StringToHash("Unholster");
     private readonly int _aInspect = Animator.StringToHash("Inspect");
 
-
+    public CSteamID SteamId { get; private set; }
     [SyncVar(hook = nameof(OnNicknameChanged))][HideInInspector] public string nickname;
     [SyncVar][HideInInspector] public int health;
     [SyncVar(hook = nameof(OnKillsChanged))][HideInInspector] public int kills;
@@ -108,15 +101,15 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
     [SyncVar(hook = nameof(OnPingChanged))][HideInInspector] public int ping;
 
     // WeaponRangeType.SHORT = 0 ; WeaponRangeType.MEDIUM = 1 ; WeaponRangeType.LONG = 2
-    [SyncVar][HideInInspector] public int curWpnIndex = -1;
-    [SyncVar(hook = nameof(OnCurWpnDbIndexChanged))][HideInInspector] public int curWpnDbIndex = -1;
+    [SyncVar][HideInInspector] private int _curWpnIndex = -1;
+    // [SyncVar(hook = nameof(OnCurWpnDbIndexChanged))][HideInInspector] public int curWpnDbIndex = -1;
 
     public WeaponIdentityData[] inventoryWeapons = new WeaponIdentityData[3];
     public WeaponIdentityData CurrentWeaponIdentity
     {
         get
         {
-            if (curWpnIndex >= 0) return inventoryWeapons[curWpnIndex];
+            if (_curWpnIndex >= 0) return inventoryWeapons[_curWpnIndex];
             else return null;
         }
     }
@@ -129,27 +122,68 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
             else return null;
         }
     }
+    public int CurrentWeaponDatabaseIndex => GameManager.GetWeaponDataIndex(CurrentWeaponIdentity.Data);
 
-    public void PickUpWeapon(WeaponIdentityData identity)
+    [Command]
+    private void CmdEquipWeapon(int index, int dbIndex, int ammo, int backupAmmo)
     {
-        UI_GameHUD.SetNewWeapon((int)identity.Data.RangeType, identity.Data.WeaponName);
+        _curWpnIndex = index;
+        RpcEquipWeapon(dbIndex, ammo, backupAmmo);
+    }
+    [ClientRpc]
+    private void RpcEquipWeapon(int dbIndex, int ammo, int backupAmmo)
+    {
+        if (_curWpnObj != null) Destroy(_curWpnObj);
+        WeaponData data = GameManager.GetWeaponData(dbIndex);
+        string path = Path.Combine("Weapons", "InHand", data.WeaponName);
 
-        if (inventoryWeapons[(int)identity.Data.RangeType] != null)
+        if (isLocalPlayer)
         {
-            ThrowWeapon(inventoryWeapons[(int)identity.Data.RangeType]);
+            _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _fpSocketWeaponRight);
+            foreach (var item in _curWpnObj.GetComponentsInChildren<Renderer>())
+            {
+                item.shadowCastingMode = ShadowCastingMode.Off;
+            }
+            _curWpnObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity, GetComponent<LocalPlayerController>());
+            
+            UI_GameHUD.ActiveInventorySlot((int)data.RangeType);
+            UI_GameHUD.SetAmmo(ammo);
+            UI_GameHUD.SetBackupAmmo(backupAmmo);
+            UI_GameHUD.SetCrosshairWeaponSpread(data.CrosshairSpread);
         }
-        inventoryWeapons[(int)identity.Data.RangeType] = identity;
+        else
+        {
+            _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _tpSocketWeaponRight);
+        }
+    }
 
-        // if the range type of picked weapon is the same as the one I currently equipped
-        // if I don't have a weapon equipped yet
-        if (curWpnIndex < 0 || curWpnIndex == (int)identity.Data.RangeType)
+    public void PickUpWeapon(WeaponData data, int currentAmmo, int backupAmmo)
+    {
+        UI_GameHUD.SetNewWeapon((int)data.RangeType, data.WeaponName);
+
+        if (inventoryWeapons[(int)data.RangeType] != null)
         {
-            EquipAt((int)identity.Data.RangeType);
+            ThrowWeapon(inventoryWeapons[(int)data.RangeType].Data.WeaponName,
+                    transform.position + Vector3.up + transform.forward,
+                    inventoryWeapons[(int)data.RangeType].CurrentAmmo,
+                    inventoryWeapons[(int)data.RangeType].BackupAmmo);
         }
+        inventoryWeapons[(int)data.RangeType] = new WeaponIdentityData(data, currentAmmo, backupAmmo);
+      
+        if (_curWpnIndex < 0 ||_curWpnIndex == (int)data.RangeType)
+        {
+            EquipAt((int)data.RangeType);
+        }
+
+        return;
     }
     public void TryThrowCurrentWeapon()
     {
 
+    }
+    public void ThrowWeapon(string weaponName, Vector3 position, int currentAmmo, int backupAmmo)
+    {
+        LevelManager.Instance.CmdSpawnWeaponOverworld(weaponName, position, currentAmmo, backupAmmo);
     }
     public void ThrowWeapon(WeaponIdentityData identity)
     {
@@ -174,6 +208,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
     {
         if (CurrentWeaponInHand.CanFireBurst())
         {
+            PlayWeaponFireSound();
             EndInspect();
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
@@ -181,7 +216,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
             CurrentWeaponInHand.FireBurst(out List<Vector3> directions);
             UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
 
-            CmdFire(curWpnDbIndex, Camera.main.transform.position, directions);
+            CmdFire(CurrentWeaponDatabaseIndex, Camera.main.transform.position, directions);
         }
 
     }
@@ -189,11 +224,12 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
     {
         if (CurrentWeaponInHand.CanFireContinuously())
         {
+            PlayWeaponFireSound();
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
             CurrentWeaponInHand.FireContinuously(out List<Vector3> directions);
             UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
-            CmdFire(curWpnDbIndex, Camera.main.transform.position, directions);
+            CmdFire(CurrentWeaponDatabaseIndex, Camera.main.transform.position, directions);
         }
     }
     public void FireStop()
@@ -201,51 +237,52 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
         CurrentWeaponInHand.FireStop();
     }
 
-    [Command]
-    private void CmdSetCurWpn(int index, int dbIndex)
-    {
-        curWpnIndex = index;
-        curWpnDbIndex = dbIndex;
-    }
-    private void OnCurWpnDbIndexChanged(int oldIndex, int newIndex)
-    {
-        if (_curWpnObj != null) Destroy(_curWpnObj);
-        WeaponData data = GameManager.GetWeaponData(newIndex);
-        string path = Path.Combine("Weapons", "InHand", data.WeaponName);
-        if (isLocalPlayer)
-        {
-            _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _fpSocketWeaponRight);
-            foreach (var item in _curWpnObj.GetComponentsInChildren<Renderer>())
-            {
-                item.shadowCastingMode = ShadowCastingMode.Off;
-            }
-            _curWpnObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity, GetComponent<LocalPlayerController>());
+    //private void OnCurWpnDbIndexChanged(int oldIndex, int newIndex)
+    //{
+    //    if (_curWpnObj != null) Destroy(_curWpnObj);
+    //    WeaponData data = GameManager.GetWeaponData(newIndex);
+    //    string path = Path.Combine("Weapons", "InHand", data.WeaponName);
+    //    if (isLocalPlayer)
+    //    {
+    //        _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _fpSocketWeaponRight);
+    //        foreach (var item in _curWpnObj.GetComponentsInChildren<Renderer>())
+    //        {
+    //            item.shadowCastingMode = ShadowCastingMode.Off;
+    //        }
+    //        _curWpnObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity, GetComponent<LocalPlayerController>());
 
-            UI_GameHUD.ActiveInventorySlot(curWpnIndex);
-            UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
-            UI_GameHUD.SetBackupAmmo(CurrentWeaponIdentity.BackupAmmo);
-            UI_GameHUD.SetCrosshairWeaponSpread(CurrentWeaponIdentity.Data.CrosshairSpread);
-        }
-        else
-        {
-            _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _tpSocketWeaponRight);
-        }
-    }
+    //        UI_GameHUD.ActiveInventorySlot(curWpnIndex);
+    //        UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
+    //        UI_GameHUD.SetBackupAmmo(CurrentWeaponIdentity.BackupAmmo);
+    //        UI_GameHUD.SetCrosshairWeaponSpread(CurrentWeaponIdentity.Data.CrosshairSpread);
+    //    }
+    //    else
+    //    {
+    //        _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _tpSocketWeaponRight);
+    //    }
+    //}
     //[Command]
     //private void CmdSetCurWpnName(string newName) { currentWeaponName = newName; }
-    public void EquipAt(int index)
+
+    public void EquipAt(int index) // only called on the client
     {
         if (inventoryWeapons[index] != null)
         {
+            _curWpnIndex = index;
+
             _charaAnimHandler.FpSetTrigger(_aUnholster);
             _charaAnimHandler.CmdTpSetTrigger(_aUnholster);
 
-            CmdSetCurWpn(index, GameManager.GetWeaponDataIndex(inventoryWeapons[index].Data));
+            CmdEquipWeapon(index,
+                GameManager.GetWeaponDataIndex(inventoryWeapons[index].Data),
+                inventoryWeapons[index].CurrentAmmo,
+                inventoryWeapons[index].BackupAmmo);
         }
     }
     [Command]
     public void CmdFire(int dbIndex, Vector3 origin, List<Vector3> directions)
     {
+        RpcFireSound();
         WeaponData wpn = GameManager.GetWeaponData(dbIndex);
         RaycastHit[] hits = new RaycastHit[5];
         foreach (Vector3 dir in directions)
@@ -299,24 +336,22 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
             }
         }
     }
-    [Command]
-    public void GetDamaged(PlayerState who, int damage, string weaponName, PlayerState attacker) //use null for the last two if the damage was environmental
+    
+    [ClientRpc(includeOwner = false)]
+    private void RpcFireSound()
     {
-        string log = "";
-        bool? b = null;
-        if (weaponName != null && weaponName != "" && attacker != null) //not environmental damage)
-        {
-            b = true;
-        }
-        log += "Player " + who.nickname + " was damaged for " + damage + " HP by " + b ?? (attacker + "'s " + weaponName + ".") ?? "their own foolishness.";
+        PlayWeaponFireSound();
     }
-
+    private void PlayWeaponFireSound()
+    {
+        _weaponAudioSource.PlayOneShot(CurrentWeaponIdentity.Data.FireSound);
+    }
     public void EquipScroll(int val)
     {
         int k;
         for (int i = 1; i < inventoryWeapons.Length; i++)
         {
-            k = (curWpnIndex + inventoryWeapons.Length + val * i) % inventoryWeapons.Length;
+            k = (_curWpnIndex + inventoryWeapons.Length + val * i) % inventoryWeapons.Length;
             if (inventoryWeapons[k] != null)
             {
                 EquipAt(k);
@@ -363,9 +398,10 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
 
 
     #region Damage
-
     public void ApplyDamage(int amount, PlayerState instigator, GameObject causer, DamageType type)
     {
+        if (!IsAlive) return;
+
         Debug.Log($"Current Health : {health} ;;;;;; Applied damage : {amount}");
         health = Mathf.Max(0, health - amount);
         TargetRefreshHealth(health);
@@ -374,6 +410,7 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
             if (instigator != null)
                 instigator.CmdAddKill();
             // dead
+            GameState.PlayerDie(this);
             RpcDie();
         }
     }
@@ -457,7 +494,6 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
             _charaAnimHandler.CmdTpSetLayerWeight(1, 0);
             _charaAnimHandler.CmdTpSetTrigger(Animator.StringToHash("Dead"));
             Destroy(_curWpnObj);
-            GetComponent<LocalPlayerController>().Die();
             for (int i = 0; i < inventoryWeapons.Length; i++)
             {
                 if (null != inventoryWeapons[i])
@@ -469,23 +505,23 @@ public class PlayerState : NetworkBehaviour, IDamageable, ISubject
 
         onDied?.Invoke();
     }
-    void ISubject.Attach(IObserver observer)
-    {
-        _observers.Add(observer);
-    }
+    //void ISubject.Attach(IObserver observer)
+    //{
+    //    _observers.Add(observer);
+    //}
 
-    void ISubject.Detach(IObserver observer)
-    {
-        _observers.Remove(observer);
-    }
+    //void ISubject.Detach(IObserver observer)
+    //{
+    //    _observers.Remove(observer);
+    //}
 
     
-    void ISubject.Notify()
-    {
-        foreach (IObserver item in _observers)
-        {
-            Debug.Log("Notified observer: " + item.ToString());
-            item.UpdateState(this);
-        }
-    }
+    //void ISubject.Notify()
+    //{
+    //    foreach (IObserver item in _observers)
+    //    {
+    //        Debug.Log("Notified observer: " + item.ToString());
+    //        item.UpdateState(this);
+    //    }
+    //}
 }

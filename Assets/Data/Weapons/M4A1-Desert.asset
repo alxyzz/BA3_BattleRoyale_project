@@ -179,3 +179,4 @@ MonoBehaviour:
   _ammo: 30
   _backupAmmo: 120
   _movementMultiplier: 0.95
+  _fireSound: {fileID: 8300000, guid: 2a101a13d49b1e04bae9f90944c5e3b6, type: 3}

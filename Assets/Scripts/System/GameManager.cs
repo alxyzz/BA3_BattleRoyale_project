@@ -18,6 +18,10 @@ public class GameManager : MonoBehaviour
     [Header("Weapon")]
     [SerializeField] private List<WeaponData> _wpnDatabase;
 
+    public static WeaponData GetRandomWeaponData()
+    {
+        return instance._wpnDatabase[Random.Range(0, instance._wpnDatabase.Count)];
+    }
     public static WeaponData GetWeaponData(int index)
     {
         return instance._wpnDatabase[index];
