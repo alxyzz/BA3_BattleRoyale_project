@@ -269,6 +269,7 @@ GameObject:
   - component: {fileID: 187218496}
   - component: {fileID: 187218498}
   - component: {fileID: 187218497}
+  - component: {fileID: 187218499}
   m_Layer: 5
   m_Name: Panel Join
   m_TagString: Untagged
@@ -332,6 +333,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 187218495}
   m_CullTransparentMesh: 1
+--- !u!114 &187218499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 187218495}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: 40
+  m_PreferredWidth: -1
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &274301894
 GameObject:
   m_ObjectHideFlags: 0
@@ -1814,6 +1835,7 @@ GameObject:
   - component: {fileID: 1830152246}
   - component: {fileID: 1830152245}
   - component: {fileID: 1830152244}
+  - component: {fileID: 1830152247}
   m_Layer: 5
   m_Name: Btn Host
   m_TagString: Untagged
@@ -1936,6 +1958,26 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1830152242}
   m_CullTransparentMesh: 1
+--- !u!114 &1830152247
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1830152242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: 50
+  m_PreferredWidth: -1
+  m_PreferredHeight: -1
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &2121060323
 GameObject:
   m_ObjectHideFlags: 0
