@@ -32,7 +32,7 @@ public class SoundList : MonoBehaviour
     }
     public static AudioClip GetRandomFootstep()
     {
-        Debug.Log("got random footstep");
+        //Debug.Log("got random footstep");
         return instance._footsteps[UnityEngine.Random.Range(0, instance._footsteps.Count - 1)];
     }
 }

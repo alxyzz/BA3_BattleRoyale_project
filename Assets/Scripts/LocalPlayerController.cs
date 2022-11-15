@@ -208,14 +208,7 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
         CR_running = true;
         while (true)
         {
-            
-            int b = 0;
-
-            b++;
-            Debug.Log("FootStep #" + b);
-
             NotifyServerOfFootstep(); //signal goes from THIS client -> server -> all clients, playing the footstep for everyone.
-
             if (_charaMovement.IsWalking) yield return new WaitForSecondsRealtime(footstepInterval_walking); else yield return new WaitForSecondsRealtime(footstepInterval_running); //delay changeable in inspector
         }
     }
