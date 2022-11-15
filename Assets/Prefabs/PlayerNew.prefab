@@ -183,7 +183,7 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   _gravityScale: 1
-  _maxJogSpeed: 3
+  _maxJogSpeed: 3.5
   _maxWalkSpeed: 1.9
   _maxCrouchSpeed: 1.68
   _groundCheckDistance: 0.15
