@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class MasterUIManager : MonoBehaviour
@@ -20,7 +21,10 @@ public class MasterUIManager : MonoBehaviour
     [Header("Popup Hint")]
     [SerializeField] private RectTransform _popupHintList;
     [SerializeField] private GameObject _pfbPopupHint;
+    
 
+
+    
     public static void AddPopupHint(string content)
     {
         UI_Cmn_PopupHint popup = Instantiate(instance._pfbPopupHint, instance._popupHintList).GetComponent<UI_Cmn_PopupHint>();

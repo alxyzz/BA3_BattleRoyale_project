@@ -12,7 +12,7 @@ using Unity.VisualScripting;
 
 // NOTE: Do not put objects in DontDestroyOnLoad (DDOL) in Awake.  You can do that in Start instead.
 
-public class LocalPlayerController : NetworkBehaviour, IObserver
+public class LocalPlayerController : NetworkBehaviour
 {
     #region Start & Stop Callbacks
 
@@ -101,7 +101,6 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
     private void Start()
     {
         _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
-        _charaMovement.Attach(this);
         if (isLocalPlayer)
         {
             _tpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
@@ -180,38 +179,10 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
     }
 
     #region Footsteps
-    private Coroutine _footstepCoroutine;
-    [SerializeField] private float footstepInterval_walking;
-    [SerializeField] private float footstepInterval_running;
-    private IObserver _footstepObserver;
-    private bool CR_running;
-    private float timeToNextFootstep = 0.0f;
+    
 
-    public void UpdateState(ISubject subject)
-    {
-        CR_running = !CR_running;
-        if (CR_running)
-        {
-            Debug.Log("Started moving. Enabling foosteps.");
-            StopCoroutine("FootstepLoop");
-            _footstepCoroutine = StartCoroutine("FootstepLoop");
-        }
-        else
-        {
-            Debug.Log("Stopped moving. Disabling foosteps.");
-            StopCoroutine("FootstepLoop");
-        }
-        
-    }
-    IEnumerator FootstepLoop()
-    {
-        CR_running = true;
-        while (true)
-        {
-            NotifyServerOfFootstep(); //signal goes from THIS client -> server -> all clients, playing the footstep for everyone.
-            if (_charaMovement.IsWalking) yield return new WaitForSecondsRealtime(footstepInterval_walking); else yield return new WaitForSecondsRealtime(footstepInterval_running); //delay changeable in inspector
-        }
-    }
+    
+    
 
     [Command]
     public void NotifyServerOfFootstep()
@@ -221,10 +192,8 @@ public class LocalPlayerController : NetworkBehaviour, IObserver
 
     [ClientRpc]
     public void PlayFootStepForEveryone()
-    {//every player is currently visible from every client
-     //but in the future, if we are to change that, we need to have a pool of sound playing empty gameobject so we can simply move that one to the position of the player and play a footstep there on demand without loading the player in if he's too far. in example, a sniper somewhere far on the map. but otherwise we can simply play sounds from their location.
+    {
 
-        _soundPlayer.Stop();
         _soundPlayer.PlayOneShot(SoundList.GetRandomFootstep());
     }
 

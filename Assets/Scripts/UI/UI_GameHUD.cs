@@ -1,9 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class UI_GameHUD : MonoBehaviour
 {
@@ -86,7 +83,7 @@ public class UI_GameHUD : MonoBehaviour
     public static void SetHealth(int val)
     {
         instance._tmpHealth.SetText(val.ToString());
-        instance._tmpHealth.color = val >= 50 ? instance._hpColor1 : 
+        instance._tmpHealth.color = val >= 50 ? instance._hpColor1 :
             (val >= 20 ? instance._hpColor2 : instance._hpColor3);
     }
     public static void SetArmor(int val)
@@ -108,10 +105,39 @@ public class UI_GameHUD : MonoBehaviour
     {
         instance._statistics.RemovePlayerSlot(ps);
     }
-    //public static void ReorderStatistics()
-    //{
-    //    instance._statistics.Reorder();
-    //}
+
+    [Header("Round End")]
+    private List<string> _VictoryBlurbs = new();
+    private GameObject _VictoryPopup;
+    private TextMeshPro _VictoryPopupUsername;
+    private TextMeshPro _VictoryPopupBlurb;
+    private GameObject _TiePopup;
+
+    public static void RegisterRefs(GameObject vPop, TextMeshPro vUser, TextMeshPro vBlurb, GameObject tPop)
+    {
+        instance._VictoryPopup = vPop;
+
+        instance._VictoryPopupUsername = vUser;
+        instance._VictoryPopupBlurb = vBlurb;
+        instance._TiePopup = tPop;
+
+    }
+
+    public static void PopUpVictory(string user)
+    {
+        instance._VictoryPopupUsername.text = user;
+        instance._VictoryPopupBlurb.text = instance._VictoryBlurbs[Random.Range(0, instance._VictoryBlurbs.Count)];
+
+        instance._VictoryPopup.SetActive(true);
+
+    }
+    public static void PopUpTie()
+    {
+        instance._TiePopup.SetActive(true);
+    }
+
+
+
     public static void SetUIEnabled(bool enabled)
     {
         instance._pnlAmmo.SetActive(enabled);

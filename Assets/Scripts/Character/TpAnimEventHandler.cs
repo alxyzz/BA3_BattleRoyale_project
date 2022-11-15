@@ -9,7 +9,6 @@ public class TpAnimEventHandler : CharacterAnimEventHandler
 
     private void FootStep()
     {
-        GetComponentInParent<AudioSource>().PlayOneShot(SoundList.GetRandomFootstep());
-
+        GetComponentInParent<LocalPlayerController>().PlayFootStepForEveryone();
     }
 }

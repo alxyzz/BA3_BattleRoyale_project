@@ -14,10 +14,10 @@ using UnityEngine;
  * The Game State is responsible for enabling the clients to monitor the state of the game.
  * Conceptually, the Game State should manage information that is meant to be known to all connected clients.
  */ 
-public class GameState : NetworkBehaviour
+public class GameState : NetworkBehaviour, IObserver
 {
 
-    private static GameState instance;
+    public static GameState instance;
     private void Awake()
     {
         instance = this;
@@ -37,6 +37,7 @@ public class GameState : NetworkBehaviour
     public static bool HasBegun => instance.hasBegun;
 
     private List<PlayerState> _playerStates = new List<PlayerState>();
+
     public static List<PlayerState> PlayerStates => instance._playerStates;
     public static void AddPlayer(PlayerState ps)
     {
@@ -80,4 +81,33 @@ public class GameState : NetworkBehaviour
     {
         UI_GameHUD.SetCountdown(str);
     }
+
+
+    #region End Conditions
+    private void DeclareVictory(PlayerState winner)
+    {
+
+    }
+
+    private void DeclareTie()
+    {
+
+    }
+
+    public void UpdateState(ISubject subject)
+    {
+        List<PlayerState> _livingPlayers = _playerStates.FindAll(x => x.IsAlive);
+        switch (_livingPlayers.Count)
+        {
+            case 1:
+                DeclareVictory(_livingPlayers[0]);
+                break;
+            case 0:
+                DeclareTie();
+                break;
+            default:
+                break;
+        }
+    }
+    #endregion
 }
