@@ -126,8 +126,10 @@ public class LocalPlayerController : NetworkBehaviour
             // Die callback
             _playerState.onDied += Die;
         }
+        
         else
         {
+            Destroy(this.GetComponentInChildren<FpAnimEventHandler>());
             Destroy(this);
         }
     }

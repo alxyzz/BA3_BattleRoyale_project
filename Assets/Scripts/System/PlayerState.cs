@@ -464,6 +464,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public void EndInspect()
     {
         CurrentWeaponInHand.SetInspect(false);
+        
     }
     public void EndInspectImmediately()
     {
