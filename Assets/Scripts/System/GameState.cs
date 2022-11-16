@@ -61,10 +61,11 @@ public class GameState : NetworkBehaviour
         {
             PlayerStates.Add(ps);
             UI_GameHUD.AddPlayerToStatistics(ps);
-
+            int maxPlayers = SteamMatchmaking.GetNumLobbyMembers(SteamLobby.Instance.CurrentLobbyId);
+            UI_GameHUD.RefreshJoinedPlayerNum(PlayerStates.Count, maxPlayers);
             if (instance.isServer)
             {
-                if (SteamMatchmaking.GetNumLobbyMembers(SteamLobby.Instance.CurrentLobbyId) == PlayerStates.Count)
+                if (maxPlayers == PlayerStates.Count)
                 {
                     instance.StartCoroutine(instance.CountdownStart());
                 }
@@ -117,18 +118,22 @@ public class GameState : NetworkBehaviour
     }
 
     #region End Conditions
-    private void DeclareVictory(PlayerState winner)
+    private void DeclareVictory(PlayerState winner) // only called by the server
     {
         Debug.Log($"player {SteamFriends.GetFriendPersonaName(winner.SteamId)} win!");
         hasBegun = false;
-        UI_GameHUD.ShowWinner(winner);
+        RpcDecalreWinner(_playerStates.IndexOf(winner));
     }
-
+    [ClientRpc]
+    private void RpcDecalreWinner(int index)
+    {
+        UI_GameHUD.ShowWinner(_playerStates[index]);
+    }
     private void DeclareTie()
     {
         Debug.Log("Game Draw!");
         hasBegun = false;
-        UI_GameHUD.ShowWinner(_playerStates[0]);
+        RpcDecalreWinner(0);
     }
     //public void UpdateState(ISubject subject)
     //{

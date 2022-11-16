@@ -129,6 +129,14 @@ MonoBehaviour:
   _burstRecoilGain: 0.7
   _crosshairSpread: 4
   _fireSpread: 0.5
+  _inAirSpreadGain: 0.4
+  _joggingSpreadGain: 0.1
+  _walkingSpreadGain: 0.06
+  _crouchingSpreadGain: 0.02
+  _inAirSpreadMultiplier: 4
+  _joggingSpreadMultiplier: 3
+  _walkingSpreadMultiplier: 0.9
+  _crouchingSpreadMultiplier: 0.8
   _baseDamage: 130
   _dmgHeadMultiplier: 3
   _dmgBodyMultiplier: 0.9
