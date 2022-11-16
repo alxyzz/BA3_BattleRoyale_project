@@ -52,6 +52,7 @@ public class WeaponInHand : MonoBehaviour
     }
     protected virtual void Start()
     {
+        if (_identity == null || _playerCtrl == null) return;
         SetThingsByScopeLevel(0);
         UI_GameHUD.SetCrosshairActive(true);
     }
