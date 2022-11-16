@@ -91,6 +91,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     private readonly int _aReload = Animator.StringToHash("Reload");
     private readonly int _aUnholster = Animator.StringToHash("Unholster");
     private readonly int _aInspect = Animator.StringToHash("Inspect");
+    private readonly int _aUninspect = Animator.StringToHash("Uninspect");
 
     public CSteamID SteamId { get; private set; }
     [SyncVar(hook = nameof(OnNicknameChanged))][HideInInspector] public string nickname;
@@ -209,7 +210,6 @@ public class PlayerState : NetworkBehaviour, IDamageable
         if (CurrentWeaponInHand.CanFireBurst())
         {
             PlayWeaponFireSound();
-            EndInspect();
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
 
@@ -237,32 +237,14 @@ public class PlayerState : NetworkBehaviour, IDamageable
         CurrentWeaponInHand.FireStop();
     }
 
-    //private void OnCurWpnDbIndexChanged(int oldIndex, int newIndex)
-    //{
-    //    if (_curWpnObj != null) Destroy(_curWpnObj);
-    //    WeaponData data = GameManager.GetWeaponData(newIndex);
-    //    string path = Path.Combine("Weapons", "InHand", data.WeaponName);
-    //    if (isLocalPlayer)
-    //    {
-    //        _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _fpSocketWeaponRight);
-    //        foreach (var item in _curWpnObj.GetComponentsInChildren<Renderer>())
-    //        {
-    //            item.shadowCastingMode = ShadowCastingMode.Off;
-    //        }
-    //        _curWpnObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity, GetComponent<LocalPlayerController>());
-
-    //        UI_GameHUD.ActiveInventorySlot(curWpnIndex);
-    //        UI_GameHUD.SetAmmo(CurrentWeaponIdentity.CurrentAmmo);
-    //        UI_GameHUD.SetBackupAmmo(CurrentWeaponIdentity.BackupAmmo);
-    //        UI_GameHUD.SetCrosshairWeaponSpread(CurrentWeaponIdentity.Data.CrosshairSpread);
-    //    }
-    //    else
-    //    {
-    //        _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _tpSocketWeaponRight);
-    //    }
-    //}
-    //[Command]
-    //private void CmdSetCurWpnName(string newName) { currentWeaponName = newName; }
+    public void ToggleScope()
+    {
+        if (CurrentWeaponInHand.CanToggleScope())
+        {
+            EndInspectImmediately();
+            CurrentWeaponInHand.ToggleScope();
+        }        
+    }
 
     public void EquipAt(int index) // only called on the client
     {
@@ -370,7 +352,6 @@ public class PlayerState : NetworkBehaviour, IDamageable
         if (!IsAlive) return;
         if (CurrentWeaponInHand.CanReload())
         {
-            EndInspect();
             _charaAnimHandler.FpSetTrigger(_aReload);
             _charaAnimHandler.CmdTpSetTrigger(_aReload);
             CurrentWeaponInHand.StartReload();
@@ -476,12 +457,19 @@ public class PlayerState : NetworkBehaviour, IDamageable
         if (CurrentWeaponInHand.CanInspect())
         {
             CurrentWeaponInHand.SetInspect(true);
+            _charaAnimHandler.FpResetTrigger(_aUninspect);
             _charaAnimHandler.FpSetTrigger(_aInspect);
         }
     }
     public void EndInspect()
     {
         CurrentWeaponInHand.SetInspect(false);
+    }
+    public void EndInspectImmediately()
+    {
+        CurrentWeaponInHand.SetInspect(false);
+        _charaAnimHandler.FpResetTrigger(_aInspect);
+        _charaAnimHandler.FpSetTrigger(_aUninspect);
     }
     #endregion
     public bool IsAlive => health > 0;
@@ -505,23 +493,4 @@ public class PlayerState : NetworkBehaviour, IDamageable
 
         onDied?.Invoke();
     }
-    //void ISubject.Attach(IObserver observer)
-    //{
-    //    _observers.Add(observer);
-    //}
-
-    //void ISubject.Detach(IObserver observer)
-    //{
-    //    _observers.Remove(observer);
-    //}
-
-    
-    //void ISubject.Notify()
-    //{
-    //    foreach (IObserver item in _observers)
-    //    {
-    //        Debug.Log("Notified observer: " + item.ToString());
-    //        item.UpdateState(this);
-    //    }
-    //}
 }

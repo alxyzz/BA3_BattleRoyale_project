@@ -3,6 +3,8 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Animations;
 using Unity.VisualScripting;
+using UnityEngine.Rendering;
+using Unity.Collections.LowLevel.Unsafe;
 //using UnityEngine.UIElements;
 
 /*
@@ -86,6 +88,8 @@ public class LocalPlayerController : NetworkBehaviour
 
     [Header("Settings")]
     [SerializeField] private float _mouseSensitivity = 2.0f;
+    public float MouseSensitivityMultiplier { get; set; } = 1.0f;
+    private float MouseSensitivity => _mouseSensitivity * MouseSensitivityMultiplier;
     // [SerializeField] private Transform _gunRoot;
     public float Pitch { get; private set; }
     public float Yaw { get; private set; }
@@ -98,11 +102,11 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void Start()
     {
-        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+        SetFirstPersonVisible(false);
 
         if (isLocalPlayer)
         {
-            _tpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
+            SetThirdPersonVisible(false);
 
             //if (!isServer) // if the local client is not the host
             //    _thirdPersonRoot.gameObject.SetActive(false);
@@ -128,16 +132,16 @@ public class LocalPlayerController : NetworkBehaviour
         }
     }
 
-    private void UpdateHandyDandyDebugQuitForEscape()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Application.Quit();
-        }
-    }
+    //private void UpdateHandyDandyDebugQuitForEscape()
+    //{
+    //    if (Input.GetKeyDown(KeyCode.Escape))
+    //    {
+    //        Application.Quit();
+    //    }
+    //}
     public void LocalStartGame()
     {
-        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+        SetFirstPersonVisible(true);
     }
     private void Update()
     {
@@ -155,6 +159,7 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateChangeWeaponInput();
         UpdateReloadInput();
         UpdateInspectInput();
+        UpdateScopeInput();
 
         CheckInteractable();
         // test for sync
@@ -172,8 +177,8 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void UpdateRotationInput()
     {
-        Yaw += Input.GetAxis("Mouse X") * _mouseSensitivity;
-        Pitch += Input.GetAxis("Mouse Y") * _mouseSensitivity;
+        Yaw += Input.GetAxis("Mouse X") * MouseSensitivity;
+        Pitch += Input.GetAxis("Mouse Y") * MouseSensitivity;
         Pitch = Mathf.Clamp(Pitch, -90, 90);
 
         _firstPersonRoot.localRotation = Quaternion.Euler(Pitch, 0, 0);
@@ -383,8 +388,8 @@ public class LocalPlayerController : NetworkBehaviour
     [SerializeField] private float _deathLerpDuration = 1.5f;
     public void Die()
     {
-        _fpSMR.gameObject.layer = LayerMask.NameToLayer("Disable Rendering");
-        _tpSMR.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+        SetFirstPersonVisible(false);
+        SetThirdPersonVisible(true);
 
         UI_GameHUD.SetUIEnabled(false);
         Camera.main.transform.GetComponent<CameraShake>().Stop();
@@ -407,5 +412,23 @@ public class LocalPlayerController : NetworkBehaviour
             yield return null;
         }
         Camera.main.AddComponent<SpectatorCamera>();
+    }
+
+    private void UpdateScopeInput()
+    {
+        if (Input.GetButtonDown("Fire2"))
+        {
+            _playerState.ToggleScope();
+        }
+    }
+
+    public void SetFirstPersonVisible(bool visible)
+    {
+
+        _fpSMR.gameObject.layer = visible ? LayerMask.NameToLayer("Ignore Raycast") : LayerMask.NameToLayer("Disable Rendering");
+    }
+    public void SetThirdPersonVisible(bool visible)
+    {
+        _tpSMR.gameObject.layer = visible ? LayerMask.NameToLayer("Ignore Raycast") : LayerMask.NameToLayer("Disable Rendering");
     }
 }

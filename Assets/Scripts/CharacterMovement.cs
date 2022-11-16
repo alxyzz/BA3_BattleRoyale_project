@@ -24,6 +24,7 @@ public class CharacterMovement : NetworkBehaviour
     bool _movedPreviously;// device input preceding the last one
     Vector2 _lastMovementRawInput; // device input
     Vector3 _lastMovementInput; // input converted to world space
+    public Vector3 LastMovementInput => _lastMovementInput;
 
     [Header("General Settings")]
     [SerializeField] private float _gravityScale = 1.0f;
@@ -50,21 +51,10 @@ public class CharacterMovement : NetworkBehaviour
     {
         get
         {
-            if (!IsOnGround) return 4.0f;
-            if (IsCrouching) return 0.6f;
-            if (IsWalking) return 0.8f;
+            if (!IsOnGround) return 3.0f;
+            if (IsCrouching) return 0.7f;
+            if (IsWalking) return 0.9f;
             if (_lastMovementInput != Vector3.zero) return _lastMovementInput.sqrMagnitude + 1.0f;
-            return 1.0f;
-        }
-    }
-    public float SpreadMultiplier
-    {
-        get
-        {
-            if (!IsOnGround) return 10.0f;
-            if (IsCrouching) return 0.6f;
-            if (IsWalking) return 0.8f;
-            if (_lastMovementInput != Vector3.zero) return _lastMovementInput.sqrMagnitude * 4.0f + 1.0f;
             return 1.0f;
         }
     }
@@ -113,25 +103,6 @@ public class CharacterMovement : NetworkBehaviour
 
         // Update Crosshair
         UpdateCrosshairSpread();
-    }
-    private void FixedUpdate()
-    {
-        ////footsteps
-        //if (_lastMovementInput != Vector3.zero && !_movedPreviously)
-        //{
-
-        //    Notify();
-        //    // _movedPreviously = true;
-        //    _movedPreviously = true;
-
-        //}
-        //else if (_lastMovementInput == Vector3.zero)
-        //{
-        //    Notify();
-        //    _movedPreviously = false;
-
-        //}
-        //////end footsteps
     }
     public void AddMovementInput(Quaternion rot, Vector2 rawInput)
     {

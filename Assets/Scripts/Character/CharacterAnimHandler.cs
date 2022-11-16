@@ -52,6 +52,10 @@ public class CharacterAnimHandler : NetworkBehaviour
     {
         _fpAnimator.SetTrigger(hashId);
     }
+    public void FpResetTrigger(int hashId)
+    {
+        _fpAnimator.ResetTrigger(hashId);
+    }
     [Command]
     public void CmdTpSetLayerWeight(int index, int weight)
     {

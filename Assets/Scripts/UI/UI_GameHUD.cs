@@ -16,6 +16,7 @@ public class UI_GameHUD : MonoBehaviour
     private void Start()
     {
         ClearInteractionHint();
+        SetScopeActive(false);
         // SetUIEnabled(false);
     }
 
@@ -56,6 +57,13 @@ public class UI_GameHUD : MonoBehaviour
         instance._tmpInteraction.SetText("");
     }
 
+    [Header("Scope")]
+    [SerializeField] private GameObject _objScope;
+    public static void SetScopeActive(bool active)
+    {
+        instance._objScope.SetActive(active);
+    }
+
     [Header("Inventory")]
     [SerializeField] private UI_Panel_Inventory _inventory;
     public static void SetNewWeapon(int index, string newName)
@@ -82,17 +90,30 @@ public class UI_GameHUD : MonoBehaviour
 
     [Header("Crosshair")]
     [SerializeField] private UI_Crosshair _crosshair;
+    public static void SetCrosshairActive(bool active)
+    {
+        instance._crosshair.gameObject.SetActive(active);
+    }
     public static void SetCrosshairWeaponSpread(float pixel)
     {
-        instance._crosshair.WeaponSpread = pixel;
+        if (instance._crosshair.gameObject.activeSelf)
+        {
+            instance._crosshair.WeaponSpread = pixel;
+        }
     }
     public static void SetCrosshairMovementSpread(float pixel)
     {
-        instance._crosshair.MovementSpread = pixel;
+        if (instance._crosshair.gameObject.activeSelf)
+        {
+            instance._crosshair.MovementSpread = pixel;
+        }
     }
     public static void SetCrosshairFireSpread(float pixel, float duration)
     {
-        instance._crosshair.SetFireSpread(pixel, duration);
+        if (instance._crosshair.gameObject.activeSelf)
+        {
+            instance._crosshair.SetFireSpread(pixel, duration);
+        }
     }
 
     [Header("Personal")]
