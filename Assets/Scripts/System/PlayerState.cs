@@ -155,6 +155,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
         else
         {
             _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _tpSocketWeaponRight);
+            _curWpnObj.GetComponent<WeaponInHand>().Init(null, null);
         }
     }
 
