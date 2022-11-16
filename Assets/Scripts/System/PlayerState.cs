@@ -351,11 +351,11 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public void StartReload()
     {
         if (!IsAlive) return;
-        if (CurrentWeaponInHand.CanReload())
+        if (CurrentWeaponInHand != null && CurrentWeaponInHand.CanReload())
         {
-            _charaAnimHandler.FpSetTrigger(_aReload);
-            _charaAnimHandler.CmdTpSetTrigger(_aReload);
-            CurrentWeaponInHand.StartReload();
+            _charaAnimHandler?.FpSetTrigger(_aReload);
+            _charaAnimHandler?.CmdTpSetTrigger(_aReload);
+            CurrentWeaponInHand?.StartReload();
         }
     }
     public void ReloadAttachToHand(int attach)
@@ -363,19 +363,19 @@ public class PlayerState : NetworkBehaviour, IDamageable
         if (!IsAlive) return;
 
         if (attach > 0)
-            CurrentWeaponInHand.RemoveMagazine(isLocalPlayer ? _fpSocketWeaponLeft : _tpSocketWeaponLeft);
+            CurrentWeaponInHand?.RemoveMagazine(isLocalPlayer ? _fpSocketWeaponLeft : _tpSocketWeaponLeft);
         else
-            CurrentWeaponInHand.LoadMagazine();
+            CurrentWeaponInHand?.LoadMagazine();
     }
     public void Reload()
     {
         if (!IsAlive) return;
-        CurrentWeaponInHand.Reload();
+        CurrentWeaponInHand?.Reload();
     }
     public void EndReload()
     {
         if (!IsAlive) return;
-        CurrentWeaponInHand.EndReload();
+        CurrentWeaponInHand?.EndReload();
     }
 
 
@@ -455,23 +455,25 @@ public class PlayerState : NetworkBehaviour, IDamageable
     #region Inspect
     public void Inspect()
     {
-        if (CurrentWeaponInHand.CanInspect())
+        if (CurrentWeaponInHand != null && CurrentWeaponInHand.CanInspect())
         {
-            CurrentWeaponInHand.SetInspect(true);
-            _charaAnimHandler.FpResetTrigger(_aUninspect);
-            _charaAnimHandler.FpSetTrigger(_aInspect);
+            CurrentWeaponInHand?.SetInspect(true);
+            _charaAnimHandler?.FpResetTrigger(_aUninspect);
+            _charaAnimHandler?.FpSetTrigger(_aInspect);
         }
     }
     public void EndInspect()
     {
-        CurrentWeaponInHand.SetInspect(false);
+        CurrentWeaponInHand?.SetInspect(false);
+        
         
     }
     public void EndInspectImmediately()
     {
-        CurrentWeaponInHand.SetInspect(false);
-        _charaAnimHandler.FpResetTrigger(_aInspect);
-        _charaAnimHandler.FpSetTrigger(_aUninspect);
+
+        CurrentWeaponInHand?.SetInspect(false);
+        _charaAnimHandler?.FpResetTrigger(_aInspect);
+        _charaAnimHandler?.FpSetTrigger(_aUninspect);
     }
     #endregion
     public bool IsAlive => health > 0;
