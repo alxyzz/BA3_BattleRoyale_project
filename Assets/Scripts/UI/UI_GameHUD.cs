@@ -14,8 +14,7 @@ public class UI_GameHUD : MonoBehaviour
         instance = this;
     }
     private void Start()
-    {
-        MyNetworkManager.singleton.ServerChangeScene(SteamLobby.SceneToLoad);
+    {        
         ClearInteractionHint();
         SetScopeActive(false);
         // SetUIEnabled(false);
