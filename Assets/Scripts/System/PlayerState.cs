@@ -50,7 +50,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
-        SteamId = SteamUser.GetSteamID();
+        CmdSetSteamIdUlong(SteamUser.GetSteamID().m_SteamID);
         CmdSetNickname(SteamFriends.GetPersonaName());
         _cUpdatePing = StartCoroutine(UpdatePing());
     }
@@ -58,6 +58,12 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         base.OnStopLocalPlayer();
         StopCoroutine(_cUpdatePing);
+    }
+
+    [Command]
+    private void CmdSetSteamIdUlong(ulong id)
+    {
+        _steamIdUlong = id;
     }
 
     private void Awake()
@@ -93,7 +99,8 @@ public class PlayerState : NetworkBehaviour, IDamageable
     private readonly int _aInspect = Animator.StringToHash("Inspect");
     private readonly int _aUninspect = Animator.StringToHash("Uninspect");
 
-    public CSteamID SteamId { get; private set; }
+    [SyncVar] private ulong _steamIdUlong;
+    public CSteamID SteamId => new CSteamID(_steamIdUlong);
     [SyncVar(hook = nameof(OnNicknameChanged))][HideInInspector] public string nickname;
     [SyncVar][HideInInspector] public int health;
     [SyncVar(hook = nameof(OnKillsChanged))][HideInInspector] public int kills;

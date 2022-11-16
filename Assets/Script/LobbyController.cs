@@ -111,12 +111,14 @@ public class LobbyController : MonoBehaviour
                 RemovePlayerListItem(new CSteamID(callback.m_ulSteamIDUserChanged));
                 break;
             case EChatMemberStateChange.k_EChatMemberStateChangeDisconnected:
+                RemovePlayerListItem(new CSteamID(callback.m_ulSteamIDUserChanged));
                 break;
             case EChatMemberStateChange.k_EChatMemberStateChangeKicked:
+                RemovePlayerListItem(new CSteamID(callback.m_ulSteamIDUserChanged));
                 break;
             case EChatMemberStateChange.k_EChatMemberStateChangeBanned:
+                RemovePlayerListItem(new CSteamID(callback.m_ulSteamIDUserChanged));
                 break;
-
             default:
                 break;
         }
@@ -234,7 +236,7 @@ public class LobbyController : MonoBehaviour
                 SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keyGameStart, "1");
 
                 // SteamLobby.SceneToLoad = "MainMap";
-                SteamLobby.SceneToLoad = "SampleScene";
+                SteamLobby.SceneToLoad = "MainMap";
                 SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keySceneToLoad, SteamLobby.SceneToLoad);
                 MyNetworkManager.singleton.ServerChangeScene(SteamLobby.SceneToLoad);
             }

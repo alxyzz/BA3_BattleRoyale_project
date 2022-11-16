@@ -23,7 +23,10 @@ public class UI_GameHUD : MonoBehaviour
     [Header("Countdown")]
     [SerializeField] private TextMeshProUGUI _tmpBeginplayCountdown;
     [SerializeField] private TextMeshProUGUI _tmpZoneCountdown;
-
+    public static void RefreshJoinedPlayerNum(int num, int max)
+    {
+        instance._tmpBeginplayCountdown.SetText($"Waiting for other players...{num}/{max}");
+    }
     public static void SetCountdown(string str)
     {
         instance._tmpBeginplayCountdown.SetText(str);
@@ -158,9 +161,11 @@ public class UI_GameHUD : MonoBehaviour
     public static void ShowWinner(PlayerState ps)
     {
         instance._winnerPanel.SetActive(true);
+
         Callback<AvatarImageLoaded_t>.Create(instance.OnWinnerIconLoaded);
         int ImageID = SteamFriends.GetLargeFriendAvatar(ps.SteamId);
         if (ImageID != -1) instance._imgWinnerIcon.texture = SteamLobby.GetSteamImageAsTexture(ImageID);
+
         instance._tmpWinnerName.SetText(SteamFriends.GetFriendPersonaName(ps.SteamId));
         instance._btnReturnToLobby.interactable =
             SteamMatchmaking.GetLobbyOwner(SteamLobby.Instance.CurrentLobbyId) == SteamUser.GetSteamID();
