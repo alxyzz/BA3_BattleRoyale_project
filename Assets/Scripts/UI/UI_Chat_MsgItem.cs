@@ -17,7 +17,7 @@ public class UI_Chat_MsgItem : UI_Widget
         if (isSelf)
             _tmpContent.SetText($"<#60FF00>{nickname}</color> : {content}");
         else
-            _tmpContent.SetText($"<#6000FF>{nickname}</color> : {content}");
+            _tmpContent.SetText($"<#00F0FF>{nickname}</color> : {content}");
 
         yield return new WaitForSecondsRealtime(4f);
         Fade(0, 0.5f, () => Destroy(gameObject));
