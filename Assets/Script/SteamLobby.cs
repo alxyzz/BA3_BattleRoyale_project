@@ -24,6 +24,7 @@ public class SteamLobby : MonoBehaviour
     public static readonly string keyHostAddress = "HostAddress";
     public static readonly string keyLobbyName = "LobbyName";
     public static readonly string keyGameStart = "GameStart";
+    public static readonly string keySceneToLoad = "SceneToLoad";
 
     public static readonly string keyReady = "Ready";
 

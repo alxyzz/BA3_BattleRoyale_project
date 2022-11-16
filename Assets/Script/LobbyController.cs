@@ -235,6 +235,7 @@ public class LobbyController : MonoBehaviour
 
                 // SteamLobby.SceneToLoad = "MainMap";
                 SteamLobby.SceneToLoad = "SampleScene";
+                SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keySceneToLoad, SteamLobby.SceneToLoad);
                 MyNetworkManager.singleton.ServerChangeScene(SteamLobby.SceneToLoad);
             }
         }
