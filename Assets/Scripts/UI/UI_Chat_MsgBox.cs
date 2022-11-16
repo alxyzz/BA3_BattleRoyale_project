@@ -11,6 +11,7 @@ public class UI_Chat_MsgBox : UI_Widget
     [SerializeField] private RectTransform _msgBack;
     [SerializeField] private TMP_InputField _ifMsg;
     [SerializeField] private GameObject _pfbMsgItem;
+    [SerializeField] float _moveIn = -30;
     private bool _isOpened;
     private void Start()
     {
@@ -38,13 +39,13 @@ public class UI_Chat_MsgBox : UI_Widget
     {
         _isOpened = true;
         Fade(1, duration, () => { _ifMsg.Select(); });
-        Translate(Vector3.left * 30, duration);
+        Translate(Vector3.right * _moveIn, duration);
     }
     public void Close(float duration = 0.15f)
     {
         _isOpened = false;
         Fade(0, duration);
-        Translate(Vector3.right * 30, duration);
+        Translate(Vector3.left * _moveIn, duration);
     }
     private void OnRecievedLobbyChatMsg(LobbyChatMsg_t callback)
     {
