@@ -43,6 +43,7 @@ public class SteamLobby : MonoBehaviour
     {
         if (!SteamManager.Initialized)
         {
+            Debug.Log("Steam not launched!");
             return;
         }
 
