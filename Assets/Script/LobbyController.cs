@@ -232,12 +232,10 @@ public class LobbyController : MonoBehaviour
                 Debug.Log("Can start game!");
                 SteamMatchmaking.SetLobbyJoinable(_lobbyId, false);
                 SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keyGameStart, "1");
-                SteamLobby.SceneToLoad = "MainMap";
-                // MyNetworkManager.singleton.ServerChangeScene("Lobby");
 
-
-                //MyNetworkManager.singleton.ServerChangeScene("MainMap");
-                 MyNetworkManager.singleton.ServerChangeScene("SampleScene");
+                // SteamLobby.SceneToLoad = "MainMap";
+                SteamLobby.SceneToLoad = "SampleScene";
+                MyNetworkManager.singleton.ServerChangeScene(SteamLobby.SceneToLoad);
             }
         }
         else
