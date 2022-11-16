@@ -103,7 +103,7 @@ public class LocalPlayerController : NetworkBehaviour
     private void Start()
     {
         SetFirstPersonVisible(false);
-
+        GetComponentInChildren<FpAnimEventHandler>().IsLocalPlayer = isLocalPlayer;
         if (isLocalPlayer)
         {
             SetThirdPersonVisible(false);
@@ -129,7 +129,7 @@ public class LocalPlayerController : NetworkBehaviour
         
         else
         {
-            Destroy(this.GetComponentInChildren<FpAnimEventHandler>());
+            // Destroy(this.GetComponentInChildren<FpAnimEventHandler>());
             Destroy(this);
         }
     }
