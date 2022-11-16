@@ -210,7 +210,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         if (CurrentWeaponInHand.CanFireBurst())
         {
-            PlayWeaponFireSound();
+            PlayWeaponFireSound(CurrentWeaponDatabaseIndex);
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
 
@@ -225,7 +225,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         if (CurrentWeaponInHand.CanFireContinuously())
         {
-            PlayWeaponFireSound();
+            PlayWeaponFireSound(CurrentWeaponDatabaseIndex);
             _charaAnimHandler.FpSetTrigger(_aFire);
             _charaAnimHandler.CmdTpSetTrigger(_aFire);
             CurrentWeaponInHand.FireContinuously(out List<Vector3> directions);
@@ -265,7 +265,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     [Command]
     public void CmdFire(int dbIndex, Vector3 origin, List<Vector3> directions)
     {
-        RpcFireSound();
+        RpcFireSound(dbIndex);
         WeaponData wpn = GameManager.GetWeaponData(dbIndex);
         RaycastHit[] hits = new RaycastHit[5];
         foreach (Vector3 dir in directions)
@@ -321,13 +321,13 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     
     [ClientRpc(includeOwner = false)]
-    private void RpcFireSound()
+    private void RpcFireSound(int dbIndex)
     {
-        PlayWeaponFireSound();
+        PlayWeaponFireSound(dbIndex);
     }
-    private void PlayWeaponFireSound()
+    private void PlayWeaponFireSound(int dbIndex)
     {
-        _weaponAudioSource.PlayOneShot(CurrentWeaponIdentity.Data.FireSound);
+        _weaponAudioSource.PlayOneShot(GameManager.GetWeaponData(dbIndex).FireSound);
     }
     public void EquipScroll(int val)
     {
