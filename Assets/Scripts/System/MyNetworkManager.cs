@@ -128,15 +128,16 @@ public class MyNetworkManager : NetworkManager
     /// </summary>
     public override void OnClientSceneChanged()
     {
+
         base.OnClientSceneChanged();
 
-        //if (SceneManager.GetActiveScene().name == "MainMap" || SceneManager.GetActiveScene().name == "SampleScene")
-        //{
-        //    NetworkClient.AddPlayer();
-        //}
-        // Debug.Log(SceneManager.GetActiveScene().name);
+        if (SceneManager.GetActiveScene().name == "MainMap" || SceneManager.GetActiveScene().name == "SampleScene")
+        {
+            NetworkClient.AddPlayer();
+        }
+        Debug.Log(SceneManager.GetActiveScene().name);
         
-        // NetworkClient.AddPlayer();
+        //NetworkClient.AddPlayer();
     }
 
     #endregion
