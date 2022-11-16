@@ -30,6 +30,7 @@ public class GameState : NetworkBehaviour
         }
 
         instance = this;
+        NetworkClient.AddPlayer();
         //Debug.Log("Game state Awake + " + SceneManager.GetActiveScene().name);
         //if (isServer)
         //    MyNetworkManager.singleton.ServerChangeScene(SceneManager.GetActiveScene().name);
@@ -37,7 +38,7 @@ public class GameState : NetworkBehaviour
 
     private void Start()
     {
-        NetworkClient.AddPlayer();
+        //NetworkClient.AddPlayer();
     }
 
     public Action onGameStarted; // only called on the server

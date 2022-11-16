@@ -236,8 +236,8 @@ public class LobbyController : MonoBehaviour
                 // MyNetworkManager.singleton.ServerChangeScene("Lobby");
 
 
-                MyNetworkManager.singleton.ServerChangeScene("MainMap");
-                // MyNetworkManager.singleton.ServerChangeScene("SampleScene");
+                //MyNetworkManager.singleton.ServerChangeScene("MainMap");
+                 MyNetworkManager.singleton.ServerChangeScene("SampleScene");
             }
         }
         else
