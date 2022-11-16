@@ -184,7 +184,10 @@ public class LobbyController : MonoBehaviour
     {
         if (_players.ContainsKey(playerId))
         {
-            Destroy(_players[playerId].gameObject);
+            if (null != _players[playerId].gameObject)
+            {
+                Destroy(_players[playerId].gameObject);
+            }
             _players.Remove(playerId);            
         }        
     }
@@ -238,7 +241,8 @@ public class LobbyController : MonoBehaviour
                 // SteamLobby.SceneToLoad = "MainMap";
                 SteamLobby.SceneToLoad = "MainMap";
                 SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keySceneToLoad, SteamLobby.SceneToLoad);
-                MyNetworkManager.singleton.ServerChangeScene(SteamLobby.SceneToLoad);
+                // MyNetworkManager.singleton.ServerChangeScene(SteamLobby.SceneToLoad);
+                SceneManager.LoadScene(SteamLobby.SceneToLoad);
             }
         }
         else
