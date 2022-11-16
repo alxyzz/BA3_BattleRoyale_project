@@ -131,11 +131,11 @@ public class MyNetworkManager : NetworkManager
 
         base.OnClientSceneChanged();
 
-        if (SceneManager.GetActiveScene().name == SteamLobby.SceneToLoad)
+        if (SceneManager.GetActiveScene().name == SteamMatchmaking.GetLobbyData(SteamLobby.Instance.CurrentLobbyId, SteamLobby.keySceneToLoad))
         {
             NetworkClient.AddPlayer();
+            Debug.Log(SceneManager.GetActiveScene().name);
         }
-        Debug.Log(SceneManager.GetActiveScene().name);
         
         //NetworkClient.AddPlayer();
     }
