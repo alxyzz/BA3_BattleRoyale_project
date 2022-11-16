@@ -19,8 +19,8 @@ public class WeaponOverworld : NetworkBehaviour, IInteractable
     }
     private void Awake()
     {
-        //CurrentAmmo = _data.Ammo;
-        //BackupAmmo = _data.BackupAmmo;
+        CurrentAmmo = _data.Ammo;
+        BackupAmmo = _data.BackupAmmo;
         _pfbInfoWidget = Resources.Load<GameObject>("UI/Game/InfoWidget");
     }
 

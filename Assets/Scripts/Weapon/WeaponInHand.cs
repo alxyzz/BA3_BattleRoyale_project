@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks.Sources;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Animations;
 
@@ -36,8 +37,8 @@ public class WeaponInHand : MonoBehaviour
     [SerializeField] private Transform _muzzle;
     public Transform Muzzle => _muzzle;
 
-    private WeaponIdentityData _identity;
-    private LocalPlayerController _playerCtrl;
+    protected WeaponIdentityData _identity;
+    protected LocalPlayerController _playerCtrl;
     public void Init(WeaponIdentityData identity, LocalPlayerController controller)
     {
         _identity = identity;
@@ -49,16 +50,21 @@ public class WeaponInHand : MonoBehaviour
         _magazinOriginalPosition = _magazine.localPosition;
         _magazinOriginalRotation = _magazine.localRotation;
     }
-
+    protected virtual void Start()
+    {
+        SetThingsByScopeLevel(0);
+        UI_GameHUD.SetCrosshairActive(true);
+    }
     public bool IsHolstered { get; set; } = true;
-    private bool _isFiring = false;
-    private bool _isReloading = false;
-    private bool _isInspected = false;
-    private float _recoilValue;
-    private float RecoilValue
+    protected bool _isFiring = false;
+    protected bool _isReloading = false;
+    protected bool _isInspected = false;
+    protected float _recoilValue;
+    protected float RecoilValue
     {
         get { return _recoilValue; }
-        set {
+        set
+        {
             _recoilValue = Mathf.Clamp(value, 1, _identity.Data.Ammo);
         }
     }
@@ -72,12 +78,42 @@ public class WeaponInHand : MonoBehaviour
             0f);
         }
     }
-    private Quaternion GetClampedRecoilRot(float pitchClamp)
+    protected Quaternion GetClampedRecoilRot(float pitchClamp)
     {
         return Quaternion.Euler(
                     Mathf.Clamp(_identity.Data.RecoilVertical.Evaluate(RecoilValue) * -1 * _playerCtrl.CharaMovementComp.RecoilMultiplier, pitchClamp, 0),
                     _identity.Data.RecoilHorizontal.Evaluate(RecoilValue) * _playerCtrl.CharaMovementComp.RecoilMultiplier,
                     0f);
+    }
+    protected virtual float FireSpreadRadius => GetFireSpreadRadius(_identity.Data.FireSpread);
+    protected float GetFireSpreadRadius(float baseSpread)
+    {
+        float gain = 0.0f;
+        float multiplier = 1.0f;
+        if (!_playerCtrl.CharaMovementComp.IsOnGround)
+        {
+            gain = _identity.Data.InAirSpreadGain;
+            multiplier = _identity.Data.InAirSpreadMultiplier;
+        }
+        else if (_playerCtrl.CharaMovementComp.LastMovementInput.sqrMagnitude != 0)
+        {
+            if (_playerCtrl.CharaMovementComp.IsCrouching)
+            {
+                gain = _identity.Data.CrouchingSpreadGain;
+                multiplier = _identity.Data.CrouchingSpreadMultiplier;
+            }
+            else if (_playerCtrl.CharaMovementComp.IsWalking)
+            {
+                gain = _identity.Data.WalkingSpreadGain;
+                multiplier = _identity.Data.WalkingSpreadMultiplier;
+            }
+            else
+            {
+                gain = _identity.Data.JoggingSpreadGain;
+                multiplier = _identity.Data.JoggingSpreadMultiplier;
+            }
+        }
+        return (baseSpread + gain) * multiplier;
     }
     public virtual bool CanFireBurst()
     {
@@ -117,16 +153,17 @@ public class WeaponInHand : MonoBehaviour
         // RaycastHit[] hits = new RaycastHit[10];
         Vector3 dir = RecoilRot * _playerCtrl.FirstPersonForward;
         Vector3 center = Camera.main.transform.position + dir;
-        float r = Random.Range(0f, _identity.Data.FireSpread) * _playerCtrl.CharaMovementComp.SpreadMultiplier;
+        float r = Random.Range(0f, FireSpreadRadius);
         float angle = Random.Range(0, Mathf.PI * 2);
         center.x += Mathf.Cos(angle) * r;
         center.y += Mathf.Sin(angle) * r;
         directions = new List<Vector3>();
-        directions.Add(center - Camera.main.transform.position);  
+        directions.Add(center - Camera.main.transform.position);
     }
 
     public virtual void FireBurst(out List<Vector3> directions)
     {
+        SetInspect(false);
         _identity.CurrentAmmo--;
         _isFiring = true;
         if (_cRecoilRecovery != null) StopCoroutine(_cRecoilRecovery);
@@ -178,26 +215,13 @@ public class WeaponInHand : MonoBehaviour
         // Camera.main.GetComponent<CameraShake>().Stop();
         _cRecoilRecovery = StartCoroutine(RecoilRecovery());
     }
-
-    //private Coroutine _coroutineCrosshairRecover;
-    //private IEnumerator CrosshairRecover()
-    //{
-    //    const float duration = 0.15f;
-    //    float time = 0.0f;
-    //    while (time < duration)
-    //    {
-    //        time = Mathf.Min(duration, time + Time.deltaTime);
-    //        UI_GameHUD.SetCrosshairWeaponSpread(Mathf.Lerp(_identity.Data.FireSpread, _identity.Data.BasicSpread, time / duration));
-    //        yield return null;
-    //    }
-    //}
     private IEnumerator ContinuousFiringDelay()
     {
         yield return new WaitForSeconds(_identity.Data.FireDelay);
         _isFiring = false;
     }
-    private Coroutine _cRecoilRecovery;
-    private IEnumerator RecoilRecovery()
+    protected Coroutine _cRecoilRecovery;
+    protected IEnumerator RecoilRecovery()
     {
         float startValue = _recoilValue;
         float speed = startValue / _identity.Data.RecoilRecoveryDuration.Evaluate(startValue / _identity.Data.Ammo);
@@ -213,74 +237,39 @@ public class WeaponInHand : MonoBehaviour
             yield return null;
         }
     }
-    //private float _cameraRecoilValue;
-    //private float _cameraRecoilVelocity;
-    //private void Update()
-    //{
-    //    if (_isFiring)
-    //    {
-    //        _cameraRecoilValue =
-    //        Mathf.SmoothDamp(_cameraRecoilValue, _recoilValue, ref _cameraRecoilVelocity, _identity.Data.FireDelay);
-
-    //        Camera.main.transform.localRotation =
-    //        Quaternion.Euler(
-    //            _identity.Data.RecoilVertical.Evaluate(_cameraRecoilValue) * -1,
-    //            _identity.Data.RecoilHorizontal.Evaluate(_cameraRecoilValue),
-    //            0f
-    //           );
-    //    }
-    //}
+    public virtual bool CanToggleScope()
+    {
+        return false;
+    }
+    public virtual void ToggleScope()
+    {
+        Debug.Log("Toggle Scope!");
+    }
+    protected virtual void SetThingsByScopeLevel(int level)
+    {
+        UI_GameHUD.SetScopeActive(level != 0);
+        _playerCtrl.MouseSensitivityMultiplier = 1.0f / Mathf.Pow(3, level);
+        _playerCtrl.SetFirstPersonVisible(level == 0);
+        SetVisible(level == 0);
+        Camera.main.fieldOfView = level == 0 ? 60 : (level == 1 ? 10 : 1);
+    }
     public bool CanReload()
     {
         return !IsHolstered && !_isReloading && _identity.CurrentAmmo < _identity.Data.Ammo && _identity.BackupAmmo > 0;
     }
-    //public int GetDamage()
-    //{
-    //    return _identity.Data.DamageBody;
-
-    //}
     public bool CanInspect()
     {
         return !_isInspected && !_isFiring && !_isReloading;
     }
-    public void SetInspect(bool inspect)
+    public virtual void SetInspect(bool inspect)
     {
         _isInspected = inspect;
     }
-    public string GetName()
-    {
-        return _identity.Data.WeaponName;
-    }
 
-    public float GetMaxRange()
-    {
-        try
-        {
-            switch (_identity.Data.RangeType)
-            {
-                case WeaponRangeType.SHORT:
-                    return 10;
-
-                case WeaponRangeType.MEDIUM:
-                    return 20;
-
-                case WeaponRangeType.LONG:
-                    return 40;
-
-                default:
-                    throw new System.Exception("@ GetMaxRange(): _identity.Data.RangeType has unpredicted state.");
-
-            }
-        }
-        catch (System.Exception e)
-        {
-            Debug.Log(e.Message);
-            throw;
-        }
-    }
     public virtual void StartReload()
     {
         FireStop();
+        SetInspect(false);
         _isReloading = true;
     }
     public virtual void Reload()
@@ -294,5 +283,12 @@ public class WeaponInHand : MonoBehaviour
     public virtual void EndReload()
     {
         _isReloading = false;
+    }
+    public virtual void SetVisible(bool visible)
+    {
+        foreach (var item in GetComponentsInChildren<Renderer>())
+        {
+            item.gameObject.layer = visible ? LayerMask.NameToLayer("Ignore Raycast") : LayerMask.NameToLayer("Disable Rendering");
+        }
     }
 }

@@ -63,6 +63,23 @@ public class WeaponData : ScriptableObject
     [Tooltip("spread when firing. unit is meter")]
     [SerializeField] private float _fireSpread;
     public float FireSpread => _fireSpread;
+    [SerializeField] private float _inAirSpreadGain = 0.4f;
+    public float InAirSpreadGain => _inAirSpreadGain;
+    [SerializeField] private float _joggingSpreadGain = 0.04f;
+    public float JoggingSpreadGain => _joggingSpreadGain;
+    [SerializeField] private float _walkingSpreadGain = 0.02f;
+    public float WalkingSpreadGain => _walkingSpreadGain;
+    [SerializeField] private float _crouchingSpreadGain = 0.01f;
+    public float CrouchingSpreadGain => _crouchingSpreadGain;
+    [SerializeField] private float _inAirSpreadMultiplier = 3.0f;
+    public float InAirSpreadMultiplier => _inAirSpreadMultiplier;
+    [SerializeField] private float _joggingSpreadMultiplier = 2.0f;
+    public float JoggingSpreadMultiplier => _joggingSpreadMultiplier;
+    [SerializeField] private float _walkingSpreadMultiplier = 0.9f;
+    public float WalkingSpreadMultiplier => _walkingSpreadMultiplier;
+    [SerializeField] private float _crouchingSpreadMultiplier = 0.8f;
+    public float CrouchingSpreadMultiplier => _crouchingSpreadMultiplier;
+
 
     [Header("Damage")]
     [SerializeField] private float _baseDamage;
