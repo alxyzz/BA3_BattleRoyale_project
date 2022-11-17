@@ -31,7 +31,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         base.OnStartServer();
         health = 100;
-        kills = 0;
+        _kills = 0;
         ping = -1;
     }
 
@@ -39,13 +39,13 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         base.OnStartClient();
         Debug.Log("Player state start. Net ID : " + netId);
-        GameState.AddPlayer(this);
+        GameState.Instance.AddPlayer(this);
     }
     public override void OnStopClient()
     {
         base.OnStopClient();
         Debug.Log("Player state stop. Net ID : " + netId);
-        GameState.RemovePlayer(this);
+        GameState.Instance.RemovePlayer(this);
     }
     public override void OnStartLocalPlayer()
     {
@@ -71,17 +71,17 @@ public class PlayerState : NetworkBehaviour, IDamageable
         _charaAnimHandler = GetComponent<CharacterAnimHandler>();      
     }
 
-    [TargetRpc]
-    public void TargetInitialWeapon()
-    {
-        UI_GameHUD.SetUIEnabled(true);
+    //[TargetRpc]
+    //public void TargetInitialWeapon()
+    //{
+    //    UI_GameHUD.SetUIEnabled(true);
 
-        GetComponent<LocalPlayerController>().LocalStartGame();
+    //    GetComponent<LocalPlayerController>().LocalStartGame();
 
-        // initial weapon
-        WeaponData initData = LevelManager.Instance.initialWeapon;
-        PickUpWeapon(initData, initData.Ammo, initData.BackupAmmo);
-    }
+    //    // initial weapon
+    //    WeaponData initData = LevelManager.Instance.initialWeapon;
+    //    PickUpWeapon(initData, initData.Ammo, initData.BackupAmmo);
+    //}
 
     [Header("Components")]
     [SerializeField] private Transform _tpSocketWeaponLeft;
@@ -103,7 +103,8 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public CSteamID SteamId => new CSteamID(_steamIdUlong);
     [SyncVar(hook = nameof(OnNicknameChanged))][HideInInspector] public string nickname;
     [SyncVar][HideInInspector] public int health;
-    [SyncVar(hook = nameof(OnKillsChanged))][HideInInspector] public int kills;
+    [SyncVar] private int _kills;
+    public int Kills => _kills;
     [SyncVar(hook = nameof(OnBodyColourChanged))][HideInInspector] public Color bodyColour;
 
     [SyncVar(hook = nameof(OnPingChanged))][HideInInspector] public int ping;
@@ -166,7 +167,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
         }
     }
 
-    public void PickUpWeapon(WeaponData data, int currentAmmo, int backupAmmo)
+    public void PickUpWeapon(WeaponData data, int currentAmmo, int backupAmmo) // only called on the client
     {
         UI_GameHUD.SetNewWeapon((int)data.RangeType, data.WeaponName);
 
@@ -178,8 +179,13 @@ public class PlayerState : NetworkBehaviour, IDamageable
                     inventoryWeapons[(int)data.RangeType].BackupAmmo);
         }
         inventoryWeapons[(int)data.RangeType] = new WeaponIdentityData(data, currentAmmo, backupAmmo);
-      
-        if (_curWpnIndex < 0 ||_curWpnIndex == (int)data.RangeType)
+
+        if (_curWpnIndex < 0)
+        {
+            GetComponent<LocalPlayerController>().SetFirstPersonVisible(true);
+            EquipAt((int)data.RangeType);
+        }
+        else if (_curWpnIndex == (int)data.RangeType)
         {
             EquipAt((int)data.RangeType);
         }
@@ -215,7 +221,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
 
     public void FireBurst()
     {
-        if (CurrentWeaponInHand.CanFireBurst())
+        if (CurrentWeaponInHand != null && CurrentWeaponInHand.CanFireBurst())
         {
             PlayWeaponFireSound(CurrentWeaponDatabaseIndex);
             _charaAnimHandler.FpSetTrigger(_aFire);
@@ -230,7 +236,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     public void FireContinuously()
     {
-        if (CurrentWeaponInHand.CanFireContinuously())
+        if (CurrentWeaponInHand != null && CurrentWeaponInHand.CanFireContinuously())
         {
             PlayWeaponFireSound(CurrentWeaponDatabaseIndex);
             _charaAnimHandler.FpSetTrigger(_aFire);
@@ -242,12 +248,12 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     public void FireStop()
     {
-        CurrentWeaponInHand.FireStop();
+        CurrentWeaponInHand?.FireStop();
     }
 
     public void ToggleScope()
     {
-        if (CurrentWeaponInHand.CanToggleScope())
+        if (CurrentWeaponInHand != null && CurrentWeaponInHand.CanToggleScope())
         {
             EndInspectImmediately();
             CurrentWeaponInHand.ToggleScope();
@@ -334,6 +340,8 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
     private void PlayWeaponFireSound(int dbIndex)
     {
+        //_weaponAudioSource.clip = GameManager.GetWeaponData(dbIndex).FireSound;
+        //_weaponAudioSource.Play();
         _weaponAudioSource.PlayOneShot(GameManager.GetWeaponData(dbIndex).FireSound);
     }
     public void EquipScroll(int val)
@@ -352,7 +360,10 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public void OnUnholstered()
     {
         if (!IsAlive) return;
-        CurrentWeaponInHand.IsHolstered = false;
+        if (null != CurrentWeaponInHand)
+        {
+            CurrentWeaponInHand.IsHolstered = false;
+        }
     }
 
     public void StartReload()
@@ -389,6 +400,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     #region Damage
     public void ApplyDamage(int amount, PlayerState instigator, GameObject causer, DamageType type)
     {
+        if (!GameState.HasBegun) return;
         if (!IsAlive) return;
 
         Debug.Log($"Current Health : {health} ;;;;;; Applied damage : {amount}");
@@ -446,17 +458,21 @@ public class PlayerState : NetworkBehaviour, IDamageable
     [Command]
     private void CmdSetKill(int val)
     {
-        kills = val;
+        _kills = val;
+        RpcSetKill(_kills);
     }
+    [Command]
     private void CmdAddKill()
     {
-        kills++;
+        _kills++;
+        RpcSetKill(_kills);
     }
-    private void OnKillsChanged(int oldKills, int newKills)
+    [ClientRpc]
+    private void RpcSetKill(int val)
     {
-        onKillsChanged?.Invoke(newKills);
+        _kills = val;
+        onKillsChanged?.Invoke(val);
     }
-
     #endregion
 
     #region Inspect
@@ -472,8 +488,6 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public void EndInspect()
     {
         CurrentWeaponInHand?.SetInspect(false);
-        
-        
     }
     public void EndInspectImmediately()
     {

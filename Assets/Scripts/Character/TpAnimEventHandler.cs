@@ -9,13 +9,13 @@ public class TpAnimEventHandler : CharacterAnimEventHandler
     protected override void Awake()
     {
         base.Awake();
-        _audioSource = GetComponentInParent<AudioSource>();
+        _audioSource = GetComponent<AudioSource>();
         _charaMovement = GetComponentInParent<CharacterMovement>();
     }
 
     private void FootStep()
     {
-        if (!_charaMovement.IsCrouching && !_charaMovement.IsWalking)            
+        if (!_charaMovement.IsWalking)            
         {
             _audioSource.PlayOneShot(SoundList.GetRandomFootstep());
         }

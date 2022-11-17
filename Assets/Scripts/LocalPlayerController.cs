@@ -116,8 +116,9 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.localRotation = Quaternion.identity;
             _firstPersonArm.SetParent(Camera.main.transform);
 
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            //Cursor.lockState = CursorLockMode.Locked;
+            //Cursor.visible = false;
+
 
             // Crouch callback
             _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
@@ -125,8 +126,7 @@ public class LocalPlayerController : NetworkBehaviour
 
             // Die callback
             _playerState.onDied += Die;
-        }
-        
+        }        
         else
         {
             // Destroy(this.GetComponentInChildren<FpAnimEventHandler>());
@@ -134,17 +134,6 @@ public class LocalPlayerController : NetworkBehaviour
         }
     }
 
-    //private void UpdateHandyDandyDebugQuitForEscape()
-    //{
-    //    if (Input.GetKeyDown(KeyCode.Escape))
-    //    {
-    //        Application.Quit();
-    //    }
-    //}
-    public void LocalStartGame()
-    {
-        SetFirstPersonVisible(true);
-    }
     private void Update()
     {
         if (!GameState.HasBegun) return;
@@ -173,7 +162,7 @@ public class LocalPlayerController : NetworkBehaviour
         if (Input.GetKeyDown(KeyCode.K))
         {
             // MyNetworkManager.singleton.ServerChangeScene("MainMap");
-            _playerState.ApplyDamage(100, _playerState, null, DamageType.DEFAULT);
+            _playerState.ApplyDamage(100, _playerState, null, DamageType.POISON);
         }
     }
 
@@ -187,27 +176,6 @@ public class LocalPlayerController : NetworkBehaviour
         transform.rotation = Quaternion.Euler(0, Yaw, 0);
     }
 
-    #region Footsteps
-    
-
-    
-    
-
-    //[Command]
-    //public void NotifyServerOfFootstep()
-    //{
-    //    PlayFootStepForEveryone();
-    //}
-
-    //[ClientRpc]
-    //public void PlayFootStepForEveryone()
-    //{
-
-    //    _soundPlayer.PlayOneShot(SoundList.GetRandomFootstep());
-    //}
-
-    
-    #endregion
     private void UpdateMovementInput()
     {
         float axisH = Input.GetAxis("Horizontal"), axisV = Input.GetAxis("Vertical");
@@ -250,12 +218,11 @@ public class LocalPlayerController : NetworkBehaviour
 
         if (Input.GetButtonDown("Walk"))
         {
-            _charaMovement.IsWalking = true;
+            _charaMovement.CmdSetIsWalking(true);
         }
         else if (Input.GetButtonUp("Walk"))
         {
-
-            _charaMovement.IsWalking = false;
+            _charaMovement.CmdSetIsWalking(false);
         }
     }
 
@@ -395,6 +362,7 @@ public class LocalPlayerController : NetworkBehaviour
 
         UI_GameHUD.SetUIEnabled(false);
         Camera.main.transform.GetComponent<CameraShake>().Stop();
+        Camera.main.transform.GetChild(0).SetParent(Camera.main.transform.parent);
         Camera.main.transform.SetParent(null);
         StartCoroutine(UpdateCameraToSpectator(
             Camera.main.transform.position,

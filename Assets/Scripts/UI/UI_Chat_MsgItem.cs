@@ -6,6 +6,7 @@ using UnityEngine;
 [RequireComponent(typeof(CanvasGroup))]
 public class UI_Chat_MsgItem : UI_Widget
 {
+    [SerializeField] private float _remainingTime = 7f;
     private TextMeshProUGUI _tmpContent;
     protected override void Awake()
     {
@@ -19,7 +20,7 @@ public class UI_Chat_MsgItem : UI_Widget
         else
             _tmpContent.SetText($"<#00F0FF>{nickname}</color> : {content}");
 
-        yield return new WaitForSecondsRealtime(4f);
+        yield return new WaitForSecondsRealtime(_remainingTime);
         Fade(0, 0.5f, () => Destroy(gameObject));
     }
 }

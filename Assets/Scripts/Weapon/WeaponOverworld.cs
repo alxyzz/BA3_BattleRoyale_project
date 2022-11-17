@@ -13,7 +13,6 @@ public class WeaponOverworld : NetworkBehaviour, IInteractable
     public int BackupAmmo { get; private set; }
     public void SetAmmo(int current, int backup)
     {
-        Debug.Log("Weapon Overworld Set Ammo");
         CurrentAmmo = current;
         BackupAmmo = backup;
     }

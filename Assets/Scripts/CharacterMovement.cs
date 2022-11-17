@@ -58,7 +58,13 @@ public class CharacterMovement : NetworkBehaviour
             return 1.0f;
         }
     }
-    public bool IsWalking { get; set; }
+    [SyncVar] private bool _isWalking;
+    public bool IsWalking => _isWalking;
+    [Command]
+    public void CmdSetIsWalking(bool isWalking)
+    {
+        _isWalking = isWalking;
+    }
 
     void Awake()
     {
