@@ -143,7 +143,6 @@ MonoBehaviour:
   _weaponAudioSource: {fileID: 3245396666866049637}
   nickname: 
   health: 0
-  kills: 0
   bodyColour: {r: 0, g: 0, b: 0, a: 0}
   ping: 0
 --- !u!143 &2258259429533691904
@@ -937,18 +936,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 12b68b8478a38064d85afc6d3754a721, type: 3}
   m_PrefabInstance: {fileID: 930817169533773483}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5197112921558131797
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 12249218020809722}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0fc14495bf484c41a18f80e17a2b420, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!82 &7323473561379943444
 AudioSource:
   m_ObjectHideFlags: 0
@@ -970,9 +957,9 @@ AudioSource:
   Priority: 128
   DopplerLevel: 1
   MinDistance: 3
-  MaxDistance: 500
+  MaxDistance: 30
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 2
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -984,6 +971,15 @@ AudioSource:
       value: 1
       inSlope: 0
       outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 0.49978518
+      value: 0.74338347
+      inSlope: -1.2737541
+      outSlope: -1.2737541
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
@@ -1045,6 +1041,18 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &5197112921558131797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 12249218020809722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0fc14495bf484c41a18f80e17a2b420, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &819747722186211648 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 12b68b8478a38064d85afc6d3754a721, type: 3}
