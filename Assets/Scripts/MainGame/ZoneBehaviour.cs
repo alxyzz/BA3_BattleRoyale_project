@@ -15,9 +15,9 @@ public class ZoneBehaviour : NetworkBehaviour
     {
         _mainCamera = Camera.main;
         _postprocessVolume = _mainCamera.GetComponent<Volume>();
-        if (!isServer) return;
         _currentRadius = transform.localScale.x;
         _currentCenter = transform.position;
+        if (!isServer) return;
         GameState.Instance.onGameStarted += () =>
         {
             StartCoroutine(Shrinking());
