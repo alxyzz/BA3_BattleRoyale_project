@@ -20,6 +20,8 @@ public class SpectatorCamera : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!GameState.HasBegun) return;
+
         // Update State
         if (Input.GetKey(KeyCode.LeftShift))
         {

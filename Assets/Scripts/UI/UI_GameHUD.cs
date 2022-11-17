@@ -66,6 +66,12 @@ public class UI_GameHUD : MonoBehaviour
     {
         instance._objScope.SetActive(active);
     }
+    [Header("Opposite Name")]
+    [SerializeField] private TextMeshProUGUI _tmpOppositeName;
+    public static void SetOppositeName(string nickname)
+    {
+        instance._tmpOppositeName.SetText(nickname);
+    }
 
     [Header("Inventory")]
     [SerializeField] private UI_Panel_Inventory _inventory;
@@ -187,5 +193,28 @@ public class UI_GameHUD : MonoBehaviour
         instance._inventory.gameObject.SetActive(enabled);
         instance._crosshair.gameObject.SetActive(enabled);
     }
-    
+
+
+    private void Update()
+    {
+        // if (!GameState.HasBegun) return;
+        if (Physics.Raycast(Camera.main.transform.position + Camera.main.transform.forward,
+            Camera.main.transform.forward,
+            out RaycastHit hit,
+            400))
+        {
+            if (hit.transform.TryGetComponent(out PlayerState ps))
+            {
+                SetOppositeName(ps.nickname);
+            }
+            else
+            {
+                SetOppositeName("");
+            }
+        }
+        else
+        {
+            SetOppositeName("");
+        }        
+    }
 }

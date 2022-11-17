@@ -27,7 +27,7 @@ public class UI_Panel_Inventory : UI_Widget
         {
             item.InitPosition();
         }
-        UI_GameHUD.SetUIEnabled(false);
+        // UI_GameHUD.SetUIEnabled(false);
     }
     public void SetNewWeapon(int index, string newName)
     {

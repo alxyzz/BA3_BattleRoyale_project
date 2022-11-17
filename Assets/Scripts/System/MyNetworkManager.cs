@@ -4,6 +4,7 @@ using UnityEngine.SceneManagement;
 using Mirror;
 using System.Collections.Generic;
 using Steamworks;
+using System.Collections;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/components/network-manager
@@ -94,9 +95,54 @@ public class MyNetworkManager : NetworkManager
     /// <param name="newSceneName"></param>
     public override void ServerChangeScene(string newSceneName)
     {
-        base.ServerChangeScene(newSceneName);
+        if (string.IsNullOrWhiteSpace(newSceneName))
+        {
+            Debug.LogError("ServerChangeScene empty scene name");
+            return;
+        }
+
+        if (NetworkServer.isLoadingScene && newSceneName == networkSceneName)
+        {
+            Debug.LogError($"Scene change is already in progress for {newSceneName}");
+            return;
+        }
+
+        // Debug.Log($"ServerChangeScene {newSceneName}");
+        NetworkServer.SetAllClientsNotReady();
+        networkSceneName = newSceneName;
+
+        // Let server prepare for scene change
+        OnServerChangeScene(newSceneName);
+
+        // set server flag to stop processing messages while changing scenes
+        // it will be re-enabled in FinishLoadScene.
+        NetworkServer.isLoadingScene = true;
+
+        loadingSceneAsync = SceneManager.LoadSceneAsync(newSceneName);
+        StartCoroutine(LoadMySceneAsync(newSceneName));
+
+        startPositionIndex = 0;
+        startPositions.Clear();
     }
 
+    IEnumerator LoadMySceneAsync(string newSceneName)
+    {
+        yield return null;
+
+        while (!loadingSceneAsync.isDone)
+        {
+            if (loadingSceneAsync.progress >= 0.9) break;
+            Debug.Log(loadingSceneAsync.progress);
+            yield return null;
+        }
+        // ServerChangeScene can be called when stopping the server
+        // when this happens the server is not active so does not need to tell clients about the change
+        if (NetworkServer.active)
+        {
+            // notify all clients about the new scene
+            NetworkServer.SendToAll(new SceneMessage { sceneName = newSceneName });
+        }
+    }
     /// <summary>
     /// Called from ServerChangeScene immediately before SceneManager.LoadSceneAsync is executed
     /// <para>This allows server to do work / cleanup / prep before the scene changes.</para>
@@ -133,7 +179,7 @@ public class MyNetworkManager : NetworkManager
 
         if (SceneManager.GetActiveScene().name == SteamMatchmaking.GetLobbyData(SteamLobby.Instance.CurrentLobbyId, SteamLobby.keySceneToLoad))
         {
-            NetworkClient.AddPlayer();
+            // NetworkClient.AddPlayer();
             Debug.Log(SceneManager.GetActiveScene().name);
         }
         

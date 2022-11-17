@@ -23,60 +23,67 @@ public class GameState : NetworkBehaviour
     public static GameState Instance => instance;
     private void Awake()
     {
-        if (null == SteamLobby.Instance)
-        {
-            SceneManager.LoadScene("MainMenu");
-            return;
-        }
-
         instance = this;
-        //Debug.Log("Game state Awake + " + SceneManager.GetActiveScene().name);
-        //if (isServer)
-        //    MyNetworkManager.singleton.ServerChangeScene(SceneManager.GetActiveScene().name);
     }
 
     private void Start()
     {
-        //NetworkClient.AddPlayer();
+        if (isClient) NetworkClient.AddPlayer();
     }
 
-    public Action onGameStarted; // only called on the server
-    public void StartGame() // only called on the server
+    public Action onGameStarted;
+    public Action onGameEnded;
+    [Command(requiresAuthority = false)]
+    public void CmdGameStart()
     {
-        hasBegun = true;
+        _hasBegun = true;
+        RpcGameStart();
+    }
+    [ClientRpc]
+    private void RpcGameStart()
+    {
+        _hasBegun = true;
         onGameStarted?.Invoke();
-        foreach (var item in _playerStates)
-        {
-            item.TargetInitialWeapon();
-        }
+    }
+    [Command(requiresAuthority = false)]
+    public void CmdGameEnd()
+    {
+        _hasBegun = false;
+    }
+    [ClientRpc]
+    private void RpcGameEnd()
+    {
+        _hasBegun = false;
+        onGameEnded?.Invoke();
     }
 
-    [SyncVar][HideInInspector] public bool hasBegun;
-    public static bool HasBegun => instance.hasBegun;
+    private bool _hasBegun;
+    public static bool HasBegun => instance._hasBegun;
     private List<PlayerState> _playerStates = new List<PlayerState>();
-    public static List<PlayerState> PlayerStates => instance._playerStates;
-    public static void AddPlayer(PlayerState ps)
+    public List<PlayerState> PlayerStates => _playerStates;
+    public void AddPlayer(PlayerState ps)
     {
-        if (ps != null && !PlayerStates.Contains(ps))
+        if (ps != null && !_playerStates.Contains(ps))
         {
-            PlayerStates.Add(ps);
+            _playerStates.Add(ps);
+            int numTotalPlayers = SteamMatchmaking.GetNumLobbyMembers(SteamLobby.Instance.CurrentLobbyId);
             UI_GameHUD.AddPlayerToStatistics(ps);
-            int maxPlayers = SteamMatchmaking.GetNumLobbyMembers(SteamLobby.Instance.CurrentLobbyId);
-            UI_GameHUD.RefreshJoinedPlayerNum(PlayerStates.Count, maxPlayers);
+            UI_GameHUD.RefreshJoinedPlayerNum(_playerStates.Count, numTotalPlayers);
+
             if (instance.isServer)
             {
-                if (maxPlayers == PlayerStates.Count)
+                if (numTotalPlayers == _playerStates.Count)
                 {
                     instance.StartCoroutine(instance.CountdownStart());
                 }
             }
         }
     }
-    public static void RemovePlayer(PlayerState ps)
+    public void RemovePlayer(PlayerState ps)
     {
-        if (ps != null && PlayerStates.Contains(ps))
+        if (ps != null && _playerStates.Contains(ps))
         {
-            PlayerStates.Remove(ps);
+            _playerStates.Remove(ps);
             UI_GameHUD.RemovePlayerFromStatistics(ps);
         }
     }
@@ -90,7 +97,7 @@ public class GameState : NetworkBehaviour
         RpcCountdown("1");
         yield return new WaitForSecondsRealtime(1.0f);
         RpcCountdown("");
-        StartGame();
+        CmdGameStart();
     }
     [ClientRpc]
     private void RpcCountdown(string str)
@@ -100,6 +107,7 @@ public class GameState : NetworkBehaviour
 
     public static void PlayerDie(PlayerState ps) // only called on the server
     {
+        if (!HasBegun) return;
         if (instance._playerStates.Contains(ps))
         {
             List<PlayerState> livings = instance._playerStates.FindAll(x => x.IsAlive);
@@ -121,7 +129,7 @@ public class GameState : NetworkBehaviour
     private void DeclareVictory(PlayerState winner) // only called by the server
     {
         Debug.Log($"player {SteamFriends.GetFriendPersonaName(winner.SteamId)} win!");
-        hasBegun = false;
+        CmdGameEnd();
         RpcDecalreWinner(_playerStates.IndexOf(winner));
     }
     [ClientRpc]
@@ -132,7 +140,7 @@ public class GameState : NetworkBehaviour
     private void DeclareTie()
     {
         Debug.Log("Game Draw!");
-        hasBegun = false;
+        CmdGameEnd();
         RpcDecalreWinner(0);
     }
     //public void UpdateState(ISubject subject)

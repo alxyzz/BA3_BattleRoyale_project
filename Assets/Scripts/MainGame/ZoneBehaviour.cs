@@ -80,7 +80,7 @@ public class ZoneBehaviour : NetworkBehaviour
         while (true)
         {
             Vector3 vec = Vector3.zero;
-            foreach (var item in GameState.PlayerStates)
+            foreach (var item in GameState.Instance.PlayerStates)
             {
                 vec.x = item.transform.position.x;
                 vec.z = item.transform.position.z;
