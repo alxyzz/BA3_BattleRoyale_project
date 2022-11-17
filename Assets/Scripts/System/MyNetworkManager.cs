@@ -179,7 +179,7 @@ public class MyNetworkManager : NetworkManager
 
         if (SceneManager.GetActiveScene().name == SteamMatchmaking.GetLobbyData(SteamLobby.Instance.CurrentLobbyId, SteamLobby.keySceneToLoad))
         {
-            // NetworkClient.AddPlayer();
+            NetworkClient.AddPlayer();
             Debug.Log(SceneManager.GetActiveScene().name);
         }
         
