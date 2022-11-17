@@ -81,7 +81,7 @@ public class UI_Panel_Statistics : UI_Widget
             {
                 GameObject obj = _slots[i].gameObject;
                 _slots.RemoveAt(i);
-                Destroy(obj);
+                if(obj != null) Destroy(obj);
                 return;
             }            
         }

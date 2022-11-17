@@ -51,7 +51,6 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         base.OnStartLocalPlayer();
         CmdSetSteamIdUlong(SteamUser.GetSteamID().m_SteamID);
-        CmdSetNickname(SteamFriends.GetPersonaName());
         _cUpdatePing = StartCoroutine(UpdatePing());
     }
     public override void OnStopLocalPlayer()
@@ -64,24 +63,21 @@ public class PlayerState : NetworkBehaviour, IDamageable
     private void CmdSetSteamIdUlong(ulong id)
     {
         _steamIdUlong = id;
+        RpcSetSteamIdUlong(id);
+    }
+    [ClientRpc]
+    private void RpcSetSteamIdUlong(ulong id)
+    {
+        _steamIdUlong = id;
+        SteamId = new CSteamID(id);
+        Nickname = SteamFriends.GetFriendPersonaName(SteamId);
+        onNicknameGot(Nickname);
     }
 
     private void Awake()
     {
         _charaAnimHandler = GetComponent<CharacterAnimHandler>();      
     }
-
-    //[TargetRpc]
-    //public void TargetInitialWeapon()
-    //{
-    //    UI_GameHUD.SetUIEnabled(true);
-
-    //    GetComponent<LocalPlayerController>().LocalStartGame();
-
-    //    // initial weapon
-    //    WeaponData initData = LevelManager.Instance.initialWeapon;
-    //    PickUpWeapon(initData, initData.Ammo, initData.BackupAmmo);
-    //}
 
     [Header("Components")]
     [SerializeField] private Transform _tpSocketWeaponLeft;
@@ -100,8 +96,9 @@ public class PlayerState : NetworkBehaviour, IDamageable
     private readonly int _aUninspect = Animator.StringToHash("Uninspect");
 
     [SyncVar] private ulong _steamIdUlong;
-    public CSteamID SteamId => new CSteamID(_steamIdUlong);
-    [SyncVar(hook = nameof(OnNicknameChanged))][HideInInspector] public string nickname;
+    public Action<string> onNicknameGot;
+    public CSteamID SteamId { get; private set; }
+    public string Nickname { get; private set; }
     [SyncVar][HideInInspector] public int health;
     [SyncVar] private int _kills;
     public int Kills => _kills;
@@ -312,7 +309,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
                     }
                     else dmg = wpn.BaseDamage;
                     dmg *= wpn.GetDistanceAttenuation(hits[i].distance);
-                    d.ApplyDamage(Mathf.Max(0, Mathf.RoundToInt(dmg * attenuation)), this, null, DamageType.SHOOT);
+                    d.ApplyDamage(Mathf.Max(0, Mathf.RoundToInt(dmg * attenuation)), this, _curWpnObj, DamageType.SHOOT);
                 }
 
                 // Temperory: spawn decal               
@@ -413,6 +410,25 @@ public class PlayerState : NetworkBehaviour, IDamageable
             // dead
             GameState.PlayerDie(this);
             RpcDie();
+
+            switch (type)
+            {
+                case DamageType.DEFAULT:
+                    break;
+                case DamageType.SHOOT:
+                    RpcKillMessage(instigator.Nickname, Nickname, GameManager.GetWeaponDataIndex(causer.GetComponent<WeaponInHand>().Identity.Data), type);
+                    break;
+                case DamageType.EXPLOSION:
+                    break;
+                case DamageType.FALL:
+                    RpcKillMessage("", Nickname, 0, type);
+                    break;
+                case DamageType.POISON:
+                    RpcKillMessage("", Nickname, 0, type);
+                    break;
+                default:
+                    break;
+            }
         }
     }
     [TargetRpc]
@@ -424,16 +440,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     #endregion
 
     #region Statistics
-    public Action<string> onNicknameChanged;
-    [Command]
-    private void CmdSetNickname(string newNickname)
-    {
-        nickname = newNickname;
-    }
-    private void OnNicknameChanged(string oldName, string newName)
-    {
-        onNicknameChanged?.Invoke(newName);
-    }
+
     public Action<int> onPingChanged;
     [Command]
     private void CmdSetPing(int val)
@@ -517,5 +524,10 @@ public class PlayerState : NetworkBehaviour, IDamageable
         }
 
         onDied?.Invoke();
+    }
+    [ClientRpc]
+    private void RpcKillMessage(string killerName, string objectName, int dbIndex, DamageType type)
+    {
+        UI_GameHUD.AddKillMessage(killerName, objectName, GameManager.GetWeaponData(dbIndex).KillIcon, type);
     }
 }

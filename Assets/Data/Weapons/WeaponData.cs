@@ -119,4 +119,6 @@ public class WeaponData : ScriptableObject
     public float MovementMultiplier => _movementMultiplier;
     [SerializeField] private AudioClip _fireSound;
     public AudioClip FireSound => _fireSound;
+    [SerializeField] private Sprite _killIcon;
+    public Sprite KillIcon => _killIcon;
 }

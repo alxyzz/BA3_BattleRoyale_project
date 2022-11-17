@@ -68,6 +68,7 @@ public class UI_GameHUD : MonoBehaviour
     }
     [Header("Opposite Name")]
     [SerializeField] private TextMeshProUGUI _tmpOppositeName;
+    [SerializeField] private LayerMask _aimLayerMask;
     public static void SetOppositeName(string nickname)
     {
         instance._tmpOppositeName.SetText(nickname);
@@ -143,6 +144,12 @@ public class UI_GameHUD : MonoBehaviour
         instance._tmpArmor.SetText(val.ToString());
     }
 
+    [Header("Kill Message")]
+    [SerializeField] private UI_Game_KillMsg _killMsg;
+    public static void AddKillMessage(string killerName, string objectName, Sprite icon, DamageType type)
+    {
+        instance._killMsg.AddKillMessage(killerName, objectName, icon, type);
+    }
     [Header("Statistics")]
     [SerializeField] private UI_Panel_Statistics _statistics;
     public static void SetStatisticsShown(bool shown)
@@ -201,11 +208,13 @@ public class UI_GameHUD : MonoBehaviour
         if (Physics.Raycast(Camera.main.transform.position + Camera.main.transform.forward,
             Camera.main.transform.forward,
             out RaycastHit hit,
-            400))
+            400,
+            _aimLayerMask))
         {
-            if (hit.transform.TryGetComponent(out PlayerState ps))
+            PlayerState ps;
+            if ((ps = hit.transform.GetComponentInParent<PlayerState>()) != null) 
             {
-                SetOppositeName(ps.nickname);
+                SetOppositeName(ps.Nickname);
             }
             else
             {
