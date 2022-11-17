@@ -11,10 +11,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Lobby.unity
     guid: bdadf4c93cde6dc4dbca2ef05ddb94da
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/LoadingScreen.unity
     guid: 1c818e28124202343821f78733aa1b54
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/csmaoTest01.unity
     guid: 75e02b77a2fe9544d967f82a1ed40d47
   - enabled: 1

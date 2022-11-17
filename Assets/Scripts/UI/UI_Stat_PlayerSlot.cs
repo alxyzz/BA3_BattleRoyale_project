@@ -19,20 +19,16 @@ public class UI_Stat_PlayerSlot : MonoBehaviour
     public void Initialise(PlayerState ps)
     {
         Player = ps;
-        ps.onNicknameGot += OnPlayerNicknameGot;
         ps.onPingChanged += OnPlayerPingChanged;
         ps.onKillsChanged += OnPlayerKillsChanged;
         Player.onDied += OnPlayerDied;
 
+        _tmpNickname.SetText(ps.Nickname);
         _imgBack.color = ps.isLocalPlayer ? new Color(0.5f, 0.6f, 0.7f, 0.235f) : Color.clear;
         _tmpPing.SetText(Player.ping.ToString());
         _tmpKills.SetText(Player.Kills.ToString());
     }
 
-    private void OnPlayerNicknameGot(string nickname)
-    {
-        _tmpNickname.SetText(nickname);
-    }
     private void OnPlayerKillsChanged(int val)
     {
         _tmpKills.SetText(val.ToString());

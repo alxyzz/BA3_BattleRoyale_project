@@ -74,8 +74,8 @@ public class UI_Chat_MsgBox : UI_Widget
         if (str != string.Empty)
         {
             byte[] msg = Encoding.UTF8.GetBytes(str);
-            _ifMsg.SetTextWithoutNotify("");
             SteamMatchmaking.SendLobbyChatMsg(SteamLobby.Instance.CurrentLobbyId, msg, msg.Length);
         }
+        _ifMsg.SetTextWithoutNotify("");
     }
 }

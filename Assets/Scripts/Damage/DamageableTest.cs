@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class DamageableTest : MonoBehaviour, IDamageable
 {
-    public void ApplyDamage(int amount, PlayerState instigator, GameObject causer, DamageType type)
+    public void ApplyDamage(int amount, PlayerState instigator, object causer, DamageType type)
     {
         Debug.Log(" ‹µΩ¡À…À∫¶£°" + amount);
     }

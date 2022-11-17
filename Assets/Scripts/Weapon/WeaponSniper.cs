@@ -7,11 +7,6 @@ public class WeaponSniper : WeaponInHand
 {
     protected int _scopeLevel;  // 0 is close FOV is 60; 1 is FOV 10; 2 is FOV 1
     [SerializeField] protected int _maxScopeLevel = 2;
-    protected override void Start()
-    {
-        UI_GameHUD.SetScopeActive(false);
-        UI_GameHUD.SetCrosshairActive(false);
-    }
     protected override float FireSpreadRadius => GetFireSpreadRadius(_scopeLevel == 0 ? _identity.Data.FireSpread : 0.0005f);
 
     public override bool CanToggleScope()

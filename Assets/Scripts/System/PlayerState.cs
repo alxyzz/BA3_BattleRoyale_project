@@ -4,8 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Principal;
-using UnityEditor.Rendering.LookDev;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -50,7 +48,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public override void OnStartLocalPlayer()
     {
         base.OnStartLocalPlayer();
-        CmdSetSteamIdUlong(SteamUser.GetSteamID().m_SteamID);
+        CmdSetSteamPersonaInfo(SteamUser.GetSteamID().m_SteamID, SteamFriends.GetPersonaName());
         _cUpdatePing = StartCoroutine(UpdatePing());
     }
     public override void OnStopLocalPlayer()
@@ -60,18 +58,10 @@ public class PlayerState : NetworkBehaviour, IDamageable
     }
 
     [Command]
-    private void CmdSetSteamIdUlong(ulong id)
+    private void CmdSetSteamPersonaInfo(ulong id, string nickname)
     {
         _steamIdUlong = id;
-        RpcSetSteamIdUlong(id);
-    }
-    [ClientRpc]
-    private void RpcSetSteamIdUlong(ulong id)
-    {
-        _steamIdUlong = id;
-        SteamId = new CSteamID(id);
-        Nickname = SteamFriends.GetFriendPersonaName(SteamId);
-        onNicknameGot(Nickname);
+        _nickname = nickname;
     }
 
     private void Awake()
@@ -95,10 +85,14 @@ public class PlayerState : NetworkBehaviour, IDamageable
     private readonly int _aInspect = Animator.StringToHash("Inspect");
     private readonly int _aUninspect = Animator.StringToHash("Uninspect");
 
+    [Header("General Settings")]
+    [SerializeField] private LayerMask _shootingLayer;
+
     [SyncVar] private ulong _steamIdUlong;
-    public Action<string> onNicknameGot;
-    public CSteamID SteamId { get; private set; }
-    public string Nickname { get; private set; }
+    public CSteamID SteamId => new CSteamID(_steamIdUlong);
+    [SyncVar] private string _nickname;
+    public string Nickname => _nickname;
+
     [SyncVar][HideInInspector] public int health;
     [SyncVar] private int _kills;
     public int Kills => _kills;
@@ -151,7 +145,8 @@ public class PlayerState : NetworkBehaviour, IDamageable
                 item.shadowCastingMode = ShadowCastingMode.Off;
             }
             _curWpnObj.GetComponent<WeaponInHand>().Init(CurrentWeaponIdentity, GetComponent<LocalPlayerController>());
-            
+            _curWpnObj.GetComponent<WeaponInHand>().SetThingsByScopeLevel(0);
+            UI_GameHUD.SetCrosshairActive(data.Type != WeaponType.SNIPER);
             UI_GameHUD.ActiveInventorySlot((int)data.RangeType);
             UI_GameHUD.SetAmmo(ammo);
             UI_GameHUD.SetBackupAmmo(backupAmmo);
@@ -160,7 +155,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
         else
         {
             _curWpnObj = Instantiate(Resources.Load<GameObject>(path), _tpSocketWeaponRight);
-            _curWpnObj.GetComponent<WeaponInHand>().Init(null, null);
+            _curWpnObj.GetComponent<WeaponInHand>().Init(new WeaponIdentityData(data, 0, 0), null);
         }
     }
 
@@ -280,7 +275,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
         RaycastHit[] hits = new RaycastHit[5];
         foreach (Vector3 dir in directions)
         {
-            int hitInfoLen = Physics.RaycastNonAlloc(origin, dir, hits, wpn.MaxRange);
+            int hitInfoLen = Physics.RaycastNonAlloc(origin, dir, hits, wpn.MaxRange, _shootingLayer);
             Array.Sort(hits, 0, hitInfoLen, new RaycastHitComparer());
             float attenuation = 1.0f;
             float dmg = 1.0f;
@@ -309,7 +304,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
                     }
                     else dmg = wpn.BaseDamage;
                     dmg *= wpn.GetDistanceAttenuation(hits[i].distance);
-                    d.ApplyDamage(Mathf.Max(0, Mathf.RoundToInt(dmg * attenuation)), this, _curWpnObj, DamageType.SHOOT);
+                    d.ApplyDamage(Mathf.Max(0, Mathf.RoundToInt(dmg * attenuation)), this, wpn, DamageType.SHOOT);
                 }
 
                 // Temperory: spawn decal               
@@ -395,7 +390,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
 
 
     #region Damage
-    public void ApplyDamage(int amount, PlayerState instigator, GameObject causer, DamageType type)
+    public void ApplyDamage(int amount, PlayerState instigator, object causer, DamageType type)
     {
         if (!GameState.HasBegun) return;
         if (!IsAlive) return;
@@ -416,7 +411,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
                 case DamageType.DEFAULT:
                     break;
                 case DamageType.SHOOT:
-                    RpcKillMessage(instigator.Nickname, Nickname, GameManager.GetWeaponDataIndex(causer.GetComponent<WeaponInHand>().Identity.Data), type);
+                    RpcKillMessage(instigator.Nickname, Nickname, GameManager.GetWeaponDataIndex(causer as WeaponData), type);
                     break;
                 case DamageType.EXPLOSION:
                     break;
@@ -511,6 +506,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     {
         if (isLocalPlayer)
         {
+            CurrentWeaponInHand?.SetThingsByScopeLevel(0);
             _charaAnimHandler.CmdTpSetLayerWeight(1, 0);
             _charaAnimHandler.CmdTpSetTrigger(Animator.StringToHash("Dead"));
             Destroy(_curWpnObj);
