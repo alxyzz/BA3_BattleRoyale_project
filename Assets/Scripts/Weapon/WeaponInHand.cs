@@ -51,12 +51,12 @@ public class WeaponInHand : MonoBehaviour
         _magazinOriginalPosition = _magazine.localPosition;
         _magazinOriginalRotation = _magazine.localRotation;
     }
-    protected virtual void Start()
-    {
-        if (_identity == null || _playerCtrl == null) return;
-        SetThingsByScopeLevel(0);
-        UI_GameHUD.SetCrosshairActive(true);
-    }
+    //protected virtual void Start()
+    //{
+    //    if (_identity == null || _playerCtrl == null)
+    //        return;
+    //    SetThingsByScopeLevel(0);
+    //}
     public bool IsHolstered { get; set; } = true;
     protected bool _isFiring = false;
     protected bool _isReloading = false;
@@ -247,7 +247,7 @@ public class WeaponInHand : MonoBehaviour
     {
         Debug.Log("Toggle Scope!");
     }
-    protected virtual void SetThingsByScopeLevel(int level)
+    public virtual void SetThingsByScopeLevel(int level)
     {
         UI_GameHUD.SetScopeActive(level != 0);
         _playerCtrl.MouseSensitivityMultiplier = 1.0f / Mathf.Pow(3, level);

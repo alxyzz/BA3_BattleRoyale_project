@@ -38,6 +38,10 @@ public class GameState : NetworkBehaviour
     private void RpcGameStart()
     {
         _hasBegun = true;
+        foreach (var item in _playerStates)
+        {
+            UI_GameHUD.AddPlayerToStatistics(item);
+        }
         onGameStarted?.Invoke();
     }
     [Command(requiresAuthority = false)]
@@ -62,7 +66,6 @@ public class GameState : NetworkBehaviour
         {
             _playerStates.Add(ps);
             int numTotalPlayers = SteamMatchmaking.GetNumLobbyMembers(SteamLobby.Instance.CurrentLobbyId);
-            UI_GameHUD.AddPlayerToStatistics(ps);
             UI_GameHUD.RefreshJoinedPlayerNum(_playerStates.Count, numTotalPlayers);
 
             if (instance.isServer)

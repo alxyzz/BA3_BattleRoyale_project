@@ -20,5 +20,5 @@ public interface IDamageable
     /// <param name="instigator">player state that was responsible for causing this damage (e.g., player who shot the gun)</param>
     /// <param name="causer">gameobject that actually caused this damage (e.g., the grenade that exploded)</param>
     /// <param name="type">damage type</param>
-    public void ApplyDamage(int amount, PlayerState instigator, GameObject causer, DamageType type);
+    public void ApplyDamage(int amount, PlayerState instigator, object causer, DamageType type);
 }

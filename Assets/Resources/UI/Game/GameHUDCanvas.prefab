@@ -139,7 +139,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: PlayerName
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6a1357912b565c14fb4154439663b9b9, type: 2}
   m_sharedMaterial: {fileID: -8709528676727224733, guid: 6a1357912b565c14fb4154439663b9b9, type: 2}
@@ -1387,7 +1387,7 @@ MonoBehaviour:
   _tmpOppositeName: {fileID: 2856854941548652233}
   _aimLayerMask:
     serializedVersion: 2
-    m_Bits: 211
+    m_Bits: 209
   _inventory: {fileID: 4300755670200150704}
   _pnlAmmo: {fileID: 4300755670575967539}
   _tmpAmmo: {fileID: 2909657444346846372}

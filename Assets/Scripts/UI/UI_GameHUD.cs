@@ -201,29 +201,27 @@ public class UI_GameHUD : MonoBehaviour
         instance._crosshair.gameObject.SetActive(enabled);
     }
 
-
-    private void Update()
+    private void FixedUpdate()
     {
-        // if (!GameState.HasBegun) return;
-        if (Physics.Raycast(Camera.main.transform.position + Camera.main.transform.forward,
+        if (GameState.Instance == null || !GameState.HasBegun) return;
+        PlayerState ps;
+        RaycastHit[] hits = Physics.RaycastAll(Camera.main.transform.position,
             Camera.main.transform.forward,
-            out RaycastHit hit,
-            400,
-            _aimLayerMask))
+            150,
+            _aimLayerMask);
+        foreach (RaycastHit hit in hits)
         {
-            PlayerState ps;
-            if ((ps = hit.transform.GetComponentInParent<PlayerState>()) != null) 
+            if ((ps = hit.transform.GetComponentInParent<PlayerState>()) != null)
             {
-                SetOppositeName(ps.Nickname);
+                if (ps.isLocalPlayer) continue;
+                else
+                {
+                    SetOppositeName(ps.Nickname);
+                    return;
+                }
             }
-            else
-            {
-                SetOppositeName("");
-            }
-        }
-        else
-        {
-            SetOppositeName("");
+            else break;
         }        
+        SetOppositeName("");
     }
 }
