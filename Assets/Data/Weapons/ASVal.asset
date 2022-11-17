@@ -120,6 +120,14 @@ MonoBehaviour:
   _burstRecoilGain: 0.7
   _crosshairSpread: 4
   _fireSpread: 0.007
+  _inAirSpreadGain: 0.4
+  _joggingSpreadGain: 0.04
+  _walkingSpreadGain: 0.02
+  _crouchingSpreadGain: 0.01
+  _inAirSpreadMultiplier: 3
+  _joggingSpreadMultiplier: 2
+  _walkingSpreadMultiplier: 0.9
+  _crouchingSpreadMultiplier: 0.8
   _baseDamage: 25
   _dmgHeadMultiplier: 3
   _dmgBodyMultiplier: 0.9
@@ -162,3 +170,4 @@ MonoBehaviour:
   _backupAmmo: 140
   _movementMultiplier: 0.85
   _fireSound: {fileID: 8300000, guid: 600fa6182b1f463499058156b9e413b5, type: 3}
+  _killIcon: {fileID: 21300000, guid: 49d7e89e605214040b9b8bf02bb8ff4e, type: 3}

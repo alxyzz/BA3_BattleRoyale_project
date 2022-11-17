@@ -116,9 +116,7 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.localRotation = Quaternion.identity;
             _firstPersonArm.SetParent(Camera.main.transform);
 
-            //Cursor.lockState = CursorLockMode.Locked;
-            //Cursor.visible = false;
-
+            GameState.Instance.onGameStarted += () => { InputManager.Instance.SetInputMode(EInputMode.GameOnly); };
 
             // Crouch callback
             _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
@@ -136,13 +134,13 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void Update()
     {
-        if (!GameState.HasBegun) return;
         if (!isLocalPlayer) return;
         UpdateShowStatisticsInput();
         if (!_playerState.IsAlive) return;
-
-        UpdateRotationInput();
         UpdateMovementInput();
+        if (!GameState.HasBegun) return;
+        if (InputManager.Instance.InputMode == EInputMode.UIOnly) return;
+        UpdateRotationInput();
         UpdateCrouchingInput();
         UpdateWalkingInput();
         UpdateJumpingInput();
@@ -178,7 +176,13 @@ public class LocalPlayerController : NetworkBehaviour
 
     private void UpdateMovementInput()
     {
-        float axisH = Input.GetAxis("Horizontal"), axisV = Input.GetAxis("Vertical");
+        float axisH = 0.0f;
+        float axisV = 0.0f;
+        if (GameState.HasBegun && InputManager.Instance.InputMode != EInputMode.UIOnly)
+        {
+            axisH = Input.GetAxis("Horizontal");
+            axisV = Input.GetAxis("Vertical");
+        }
         _charaMovement.AddMovementInput(
             transform.rotation,
             new Vector2(axisH, axisV)

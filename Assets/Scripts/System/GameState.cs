@@ -26,11 +26,6 @@ public class GameState : NetworkBehaviour
         instance = this;
     }
 
-    private void Start()
-    {
-        if (isClient) NetworkClient.AddPlayer();
-    }
-
     public Action onGameStarted;
     public Action onGameEnded;
     [Command(requiresAuthority = false)]

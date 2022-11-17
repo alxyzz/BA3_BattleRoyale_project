@@ -8,10 +8,13 @@ using UnityEngine.UI;
 [RequireComponent(typeof(CanvasGroup))]
 public class UI_Game_KillMsgItem : UI_Widget
 {
-    [SerializeField] private float _remainingTime = 6.0f;
+    [Header("Components")]
     [SerializeField] private TextMeshProUGUI _tmpKillerName;
     [SerializeField] private Image _imgKillIcon;
     [SerializeField] private TextMeshProUGUI _tmpObjectName;
+
+    [Header("Default Settinigs")]
+    [SerializeField] private float _remainingTime = 6.0f;
 
     public IEnumerator SetKillContent(string killerName, string objectName, Sprite icon)
     {

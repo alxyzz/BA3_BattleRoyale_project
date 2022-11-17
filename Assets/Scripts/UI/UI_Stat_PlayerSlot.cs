@@ -19,7 +19,7 @@ public class UI_Stat_PlayerSlot : MonoBehaviour
     public void Initialise(PlayerState ps)
     {
         Player = ps;
-        ps.onNicknameChanged += OnPlayerNicknameChanged;
+        ps.onNicknameGot += OnPlayerNicknameGot;
         ps.onPingChanged += OnPlayerPingChanged;
         ps.onKillsChanged += OnPlayerKillsChanged;
         Player.onDied += OnPlayerDied;
@@ -29,9 +29,9 @@ public class UI_Stat_PlayerSlot : MonoBehaviour
         _tmpKills.SetText(Player.Kills.ToString());
     }
 
-    private void OnPlayerNicknameChanged(string str)
+    private void OnPlayerNicknameGot(string nickname)
     {
-        _tmpNickname.SetText(str);
+        _tmpNickname.SetText(nickname);
     }
     private void OnPlayerKillsChanged(int val)
     {

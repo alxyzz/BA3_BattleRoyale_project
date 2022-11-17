@@ -1185,7 +1185,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 999
+  m_text: '-'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6a1357912b565c14fb4154439663b9b9, type: 2}
   m_sharedMaterial: {fileID: -8709528676727224733, guid: 6a1357912b565c14fb4154439663b9b9, type: 2}
@@ -1385,6 +1385,9 @@ MonoBehaviour:
   _tmpInteraction: {fileID: 3864626940442792775}
   _objScope: {fileID: 3293020818010679378}
   _tmpOppositeName: {fileID: 2856854941548652233}
+  _aimLayerMask:
+    serializedVersion: 2
+    m_Bits: 211
   _inventory: {fileID: 4300755670200150704}
   _pnlAmmo: {fileID: 4300755670575967539}
   _tmpAmmo: {fileID: 2909657444346846372}
@@ -1396,6 +1399,7 @@ MonoBehaviour:
   _hpColor2: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   _hpColor3: {r: 1, g: 0, b: 0, a: 1}
   _tmpArmor: {fileID: 5222148645770229385}
+  _killMsg: {fileID: 7676817195782375566}
   _statistics: {fileID: 4300755668829649825}
   _winnerPanel: {fileID: 3734772151220520993}
   _imgWinnerIcon: {fileID: 2992944039904579791}
@@ -2464,7 +2468,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 999
+  m_text: '-'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6a1357912b565c14fb4154439663b9b9, type: 2}
   m_sharedMaterial: {fileID: -8709528676727224733, guid: 6a1357912b565c14fb4154439663b9b9, type: 2}
@@ -3057,6 +3061,7 @@ GameObject:
   - component: {fileID: 538737329891286940}
   - component: {fileID: 6911165012572300432}
   - component: {fileID: 6997711537042127698}
+  - component: {fileID: 7676817195782375566}
   m_Layer: 5
   m_Name: Panel Kill Message
   m_TagString: Untagged
@@ -3132,6 +3137,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
+--- !u!114 &7676817195782375566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4722652802453601785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 845d58b0df7c3724e95a60f2280d6df0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _pfbKillMsgItem: {fileID: 8805665458814346260, guid: c5209454bcc286d4ca5ffb977470351d, type: 3}
+  _fallKillIcon: {fileID: 21300000, guid: de31340bebe6dc744ace71c8ca2d2867, type: 3}
+  _poisonKillIcon: {fileID: 21300000, guid: de31340bebe6dc744ace71c8ca2d2867, type: 3}
 --- !u!1 &4978124014394778870
 GameObject:
   m_ObjectHideFlags: 0
@@ -3470,7 +3490,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 999s
+  m_text: --- s
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6a1357912b565c14fb4154439663b9b9, type: 2}
   m_sharedMaterial: {fileID: -8709528676727224733, guid: 6a1357912b565c14fb4154439663b9b9, type: 2}
@@ -4082,6 +4102,10 @@ PrefabInstance:
     - target: {fileID: 5940940589831859049, guid: 1ba0a4ac5b9fee94daa32259a61b9717, type: 3}
       propertyPath: _moveIn
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5940940589831859049, guid: 1ba0a4ac5b9fee94daa32259a61b9717, type: 3}
+      propertyPath: _isGameScene
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1ba0a4ac5b9fee94daa32259a61b9717, type: 3}

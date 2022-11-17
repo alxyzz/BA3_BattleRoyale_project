@@ -38,6 +38,7 @@ public class WeaponInHand : MonoBehaviour
     public Transform Muzzle => _muzzle;
 
     protected WeaponIdentityData _identity;
+    public WeaponIdentityData Identity => _identity;
     protected LocalPlayerController _playerCtrl;
     public void Init(WeaponIdentityData identity, LocalPlayerController controller)
     {

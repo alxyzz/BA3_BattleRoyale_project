@@ -12,6 +12,7 @@ public class UI_Chat_MsgBox : UI_Widget
     [SerializeField] private TMP_InputField _ifMsg;
     [SerializeField] private GameObject _pfbMsgItem;
     [SerializeField] float _moveIn = -30;
+    [SerializeField] bool _isGameScene;
     private bool _isOpened;
     private void Start()
     {
@@ -27,9 +28,11 @@ public class UI_Chat_MsgBox : UI_Widget
             {
                 SendChatMsg();
                 Close();
+                InputManager.Instance.SetInputMode(_isGameScene ? EInputMode.GameOnly : EInputMode.UIOnly);
             }
             else
             {
+                InputManager.Instance.SetInputMode(EInputMode.UIOnly);
                 Open();
             }
         }
