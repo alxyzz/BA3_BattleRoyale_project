@@ -32,6 +32,7 @@ public class GameState : NetworkBehaviour
     public void CmdGameStart()
     {
         _hasBegun = true;
+        onGameStarted?.Invoke();
         RpcGameStart();
     }
     [ClientRpc]
