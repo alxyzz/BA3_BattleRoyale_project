@@ -25,48 +25,40 @@ public class RaycastHitComparer : IComparer<RaycastHit>
 */
 public class PlayerState : NetworkBehaviour, IDamageable
 {
-    public override void OnStartServer()
-    {
-        base.OnStartServer();
-        health = 100;
-        _kills = 0;
-        ping = -1;
-    }
-
-    public override void OnStartClient()
-    {
-        base.OnStartClient();
-        Debug.Log("Player state start. Net ID : " + netId);
-        GameState.Instance.AddPlayer(this);
-    }
-    public override void OnStopClient()
-    {
-        base.OnStopClient();
-        Debug.Log("Player state stop. Net ID : " + netId);
-        GameState.Instance.RemovePlayer(this);
-    }
-    public override void OnStartLocalPlayer()
-    {
-        base.OnStartLocalPlayer();
-        CmdSetSteamPersonaInfo(SteamUser.GetSteamID().m_SteamID, SteamFriends.GetPersonaName());
-        _cUpdatePing = StartCoroutine(UpdatePing());
-    }
-    public override void OnStopLocalPlayer()
-    {
-        base.OnStopLocalPlayer();
-        StopCoroutine(_cUpdatePing);
-    }
-
     [Command]
-    private void CmdSetSteamPersonaInfo(ulong id, string nickname)
+    private void CmdStartLocalPlayer(ulong steamIdUlong)
     {
-        _steamIdUlong = id;
-        _nickname = nickname;
+        _steamIdUlong = steamIdUlong;
+        SteamId = new CSteamID(steamIdUlong);
+        _nickname = SteamFriends.GetFriendPersonaName(SteamId);
+        GameState.Instance.AddPlayer(steamIdUlong, netId);
+    }
+    //public override void OnStartLocalPlayer()
+    //{
+    //    Debug.Log("On player state start local player");
+    //    // CmdSetSteamPersonaInfo(SteamUser.GetSteamID().m_SteamID, SteamFriends.GetPersonaName());
+    //}
+    public override void OnStopServer()
+    {
+        GameState.Instance.RemovePlayer(_steamIdUlong);
     }
 
     private void Awake()
     {
         _charaAnimHandler = GetComponent<CharacterAnimHandler>();      
+    }
+    private void Start()
+    {
+        if (isLocalPlayer)
+        {
+            Debug.Log("On player state start.");
+            _steamIdUlong = SteamUser.GetSteamID().m_SteamID;
+            SteamId = SteamUser.GetSteamID();
+            _nickname = SteamFriends.GetPersonaName();
+            CmdStartLocalPlayer(SteamUser.GetSteamID().m_SteamID);
+            onHealthChanged += (val) => UI_GameHUD.Instance.SetHealth(val);
+            _cUpdatePing = StartCoroutine(UpdatePing());
+        }
     }
 
     [Header("Components")]
@@ -88,17 +80,22 @@ public class PlayerState : NetworkBehaviour, IDamageable
     [Header("General Settings")]
     [SerializeField] private LayerMask _shootingLayer;
 
-    [SyncVar] private ulong _steamIdUlong;
-    public CSteamID SteamId => new CSteamID(_steamIdUlong);
+    // ----------------------------
+    //  Steam status
+    // ----------------------------
+    [SyncVar(hook = nameof(OnSteamIdUlongChanged))] private ulong _steamIdUlong;
+    public CSteamID SteamId { get; private set; }
+    private void OnSteamIdUlongChanged(ulong oldVal, ulong newVal)
+    {
+        SteamId = new CSteamID(newVal);
+        _nickname = SteamFriends.GetFriendPersonaName(SteamId);
+    }
     [SyncVar] private string _nickname;
     public string Nickname => _nickname;
 
-    [SyncVar][HideInInspector] public int health;
-    [SyncVar] private int _kills;
-    public int Kills => _kills;
+
     [SyncVar(hook = nameof(OnBodyColourChanged))][HideInInspector] public Color bodyColour;
 
-    [SyncVar(hook = nameof(OnPingChanged))][HideInInspector] public int ping;
 
     // WeaponRangeType.SHORT = 0 ; WeaponRangeType.MEDIUM = 1 ; WeaponRangeType.LONG = 2
     [SyncVar][HideInInspector] private int _curWpnIndex = -1;
@@ -324,7 +321,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
             }
         }
     }
-    
+
     [ClientRpc(includeOwner = false)]
     private void RpcFireSound(int dbIndex)
     {
@@ -390,36 +387,44 @@ public class PlayerState : NetworkBehaviour, IDamageable
 
 
     #region Damage
+    [SyncVar(hook = nameof(OnHealthChanged))] private int _health = 100;
+    public Action<int> onHealthChanged;
+    public int Health => _health;
     public void ApplyDamage(int amount, PlayerState instigator, object causer, DamageType type)
     {
-        if (!GameState.HasBegun) return;
         if (!IsAlive) return;
+        if (GameState.Instance.Stage != GameStage.PLAYING) return;
 
-        Debug.Log($"Current Health : {health} ;;;;;; Applied damage : {amount}");
-        health = Mathf.Max(0, health - amount);
-        TargetRefreshHealth(health);
-        if (health == 0)
+        Debug.Log($"Current Health : {_health} ;;;;;; Applied damage : {amount}");
+        _health = Mathf.Max(0, _health - amount);
+
+        if (instigator != null) TargetGetDamage(instigator.netId, true);
+        // TargetRefreshHealth(health);
+        if (_health == 0)
         {
-            if (instigator != null)
-                instigator.CmdAddKill();
+            if (instigator != null) instigator.AddKill();
             // dead
-            GameState.PlayerDie(this);
             RpcDie();
+            GameState.Instance.PlayerDied(netId);
 
             switch (type)
             {
                 case DamageType.DEFAULT:
                     break;
                 case DamageType.SHOOT:
-                    RpcKillMessage(instigator.Nickname, Nickname, GameManager.GetWeaponDataIndex(causer as WeaponData), type);
+                    LevelManager.Instance.BroadcastKillMessage(
+                        instigator.Nickname,
+                        Nickname,
+                        GameManager.GetWeaponDataIndex(causer as WeaponData),
+                        type);
                     break;
                 case DamageType.EXPLOSION:
                     break;
                 case DamageType.FALL:
-                    RpcKillMessage("", Nickname, 0, type);
+                    LevelManager.Instance.BroadcastKillMessage("", Nickname, 0, type);
                     break;
                 case DamageType.POISON:
-                    RpcKillMessage("", Nickname, 0, type);
+                    LevelManager.Instance.BroadcastKillMessage("", Nickname, 0, type);
                     break;
                 default:
                     break;
@@ -427,26 +432,37 @@ public class PlayerState : NetworkBehaviour, IDamageable
         }
     }
     [TargetRpc]
-    public void TargetRefreshHealth(int hp)
+    private void TargetGetDamage(uint netId, bool isByNetObj)
     {
-        health = hp;
-        UI_GameHUD.SetHealth(health);
+        if (isByNetObj && NetworkClient.spawned.TryGetValue(netId, out NetworkIdentity identity))
+        {
+            UI_GameHUD.Instance.SetDamaged(identity.transform);
+        }
+        else
+        {
+            UI_GameHUD.Instance.SetDamaged(null);
+        }
+    }
+    private void OnHealthChanged(int oldVal, int newVal)
+    {
+        // if (isLocalPlayer) UI_GameHUD.Instance.SetHealth(newVal);
+        onHealthChanged?.Invoke(newVal);
+    }
+    [Command]
+    public void CmdSetSelfDamage(int amount, DamageType type)
+    {
+        ApplyDamage(amount, this, null, type);
     }
     #endregion
 
     #region Statistics
-
+    [SyncVar(hook = nameof(OnPingChanged))] private int _ping = 0;
+    public int Ping => _ping;
     public Action<int> onPingChanged;
     [Command]
-    private void CmdSetPing(int val)
-    {
-        ping = val;
-    }
-    private void OnPingChanged(int oldPing, int newPing)
-    {
-        onPingChanged?.Invoke(newPing);
-    }
-    Coroutine _cUpdatePing;
+    private void CmdSetPing(int val) { _ping = val; }
+    private void OnPingChanged(int oldPing, int newPing) { onPingChanged?.Invoke(newPing); }
+    private Coroutine _cUpdatePing;
     IEnumerator UpdatePing()
     {
         while (true)
@@ -456,25 +472,16 @@ public class PlayerState : NetworkBehaviour, IDamageable
         }
     }
 
+    [SyncVar(hook = nameof(OnKillsChanged))] private int _kills = 0;
+    public int Kills => _kills;
     public Action<int> onKillsChanged;
     [Command]
-    private void CmdSetKill(int val)
-    {
-        _kills = val;
-        RpcSetKill(_kills);
-    }
-    [Command]
-    private void CmdAddKill()
-    {
-        _kills++;
-        RpcSetKill(_kills);
-    }
-    [ClientRpc]
-    private void RpcSetKill(int val)
-    {
-        _kills = val;
-        onKillsChanged?.Invoke(val);
-    }
+    private void CmdSetKills(int val) { _kills = val; }
+    /// <summary>
+    /// Server Onlet
+    /// </summary>
+    private void AddKill() { _kills++; }
+    private void OnKillsChanged(int oldKill, int newKill) { onKillsChanged?.Invoke(newKill); }
     #endregion
 
     #region Inspect
@@ -499,17 +506,18 @@ public class PlayerState : NetworkBehaviour, IDamageable
         _charaAnimHandler?.FpSetTrigger(_aUninspect);
     }
     #endregion
-    public bool IsAlive => health > 0;
-    public Action onDied;
+    public bool IsAlive => _health > 0;
+    // public Action onDied;
     [ClientRpc]
     public void RpcDie()
     {
+        Debug.Log("Rpc Die");
+        if (_curWpnObj) Destroy(_curWpnObj);
         if (isLocalPlayer)
         {
             CurrentWeaponInHand?.SetThingsByScopeLevel(0);
             _charaAnimHandler.CmdTpSetLayerWeight(1, 0);
             _charaAnimHandler.CmdTpSetTrigger(Animator.StringToHash("Dead"));
-            Destroy(_curWpnObj);
             for (int i = 0; i < inventoryWeapons.Length; i++)
             {
                 if (null != inventoryWeapons[i])
@@ -517,13 +525,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
                     ThrowWeapon(inventoryWeapons[i]);
                 }
             }
+            GetComponent<LocalPlayerController>().Die();
         }
-
-        onDied?.Invoke();
-    }
-    [ClientRpc]
-    private void RpcKillMessage(string killerName, string objectName, int dbIndex, DamageType type)
-    {
-        UI_GameHUD.AddKillMessage(killerName, objectName, GameManager.GetWeaponData(dbIndex).KillIcon, type);
     }
 }

@@ -10,7 +10,7 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private TMP_InputField _ifLobbyId;
     private void Start()
     {
-        SteamLobby.Instance.RecoverUI += () => { SetChildrenEnabled(true); };
+        SteamLobby.Instance.onRecoverUI += () => { SetChildrenEnabled(true); };
     }
     private void SetChildrenEnabled(bool enabled)
     {

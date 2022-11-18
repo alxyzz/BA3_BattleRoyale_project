@@ -1,15 +1,21 @@
+using Mirror;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class LocalGame : MonoBehaviour
 {
-    private LocalGame _instance;
+    private static LocalGame instance;
+    public static LocalGame Instance => instance;
     private void Awake()
     {
-        _instance = this;
+        instance = this;
     }
-
-    public static GameObject LocalPlayer { get; set; }
     
+
+    public Action onServerGameStarted;
+    public Action onClientGameStarted;
+    public Action onServerGameEnded;
+    public Action onClientGameEnded;
 }

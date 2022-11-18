@@ -66,18 +66,17 @@ public class UI_Panel_Statistics : UI_Widget
         }
     }
 
-    public void AddPlayerSlot(PlayerState ps)
+    public void AddPlayerSlot(uint netId)
     {
         UI_Stat_PlayerSlot slot = Instantiate(_pfbPlayerSlot, _list).GetComponent<UI_Stat_PlayerSlot>();
-        slot.Initialise(ps);
+        slot.Initialise(netId);
         _slots.Add(slot);
-
     }
-    public void RemovePlayerSlot(PlayerState ps)
+    public void RemovePlayerSlot(uint netId)
     {
         for (int i = 0; i < _slots.Count; i++)
         {
-            if (_slots[i] != null && _slots[i].Player == ps)
+            if (_slots[i] != null && _slots[i].NetId == netId)
             {
                 GameObject obj = _slots[i].gameObject;
                 _slots.RemoveAt(i);

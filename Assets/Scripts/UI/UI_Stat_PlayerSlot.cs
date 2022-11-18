@@ -10,23 +10,29 @@ public class UI_Stat_PlayerSlot : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _tmpKills;
     [SerializeField] private TextMeshProUGUI _tmpPing;
     private RawImage _imgBack;
-    public PlayerState Player { get; private set; }
+    public uint NetId { get; private set; }
+    private PlayerState _playerState;
 
     private void Awake()
     {
         _imgBack = GetComponent<RawImage>();
     }
-    public void Initialise(PlayerState ps)
+    public void Initialise(uint netId)
     {
-        Player = ps;
-        ps.onPingChanged += OnPlayerPingChanged;
-        ps.onKillsChanged += OnPlayerKillsChanged;
-        Player.onDied += OnPlayerDied;
+        NetId = netId;
+        if (GameState.Instance.TryGetPlayerStateByNetId(netId, out _playerState))
+        {
+            Debug.Log($"player slot netID {netId}");
+            Debug.Log($"{_playerState.Nickname}");
+            _tmpNickname.SetText(_playerState.Nickname);
+            _imgBack.color = _playerState.isLocalPlayer ? new Color(0.5f, 0.6f, 0.7f, 0.235f) : Color.clear;
+            _tmpPing.SetText(_playerState.Ping.ToString());
+            _tmpKills.SetText(_playerState.Kills.ToString());
 
-        _tmpNickname.SetText(ps.Nickname);
-        _imgBack.color = ps.isLocalPlayer ? new Color(0.5f, 0.6f, 0.7f, 0.235f) : Color.clear;
-        _tmpPing.SetText(Player.ping.ToString());
-        _tmpKills.SetText(Player.Kills.ToString());
+            _playerState.onPingChanged += OnPlayerPingChanged;
+            _playerState.onKillsChanged += OnPlayerKillsChanged;
+            _playerState.onHealthChanged += OnPlayerHealthChanged;
+        }
     }
 
     private void OnPlayerKillsChanged(int val)
@@ -35,22 +41,28 @@ public class UI_Stat_PlayerSlot : MonoBehaviour
 
         for (int i = transform.GetSiblingIndex(); i > 0; i--)
         {
-            if (transform.parent.GetChild(i - 1).GetComponent<UI_Stat_PlayerSlot>().Player.Kills >= val)
+            Debug.Log($"{i}  {transform.parent.GetChild(i - 1).GetComponent<UI_Stat_PlayerSlot>()._playerState == null}");
+            if (transform.parent.GetChild(i - 1).GetComponent<UI_Stat_PlayerSlot>()._playerState.Kills >= val)
             {
                 transform.SetSiblingIndex(i);
+                return;
             }
         }
+        transform.SetSiblingIndex(0);
     }
     private void OnPlayerPingChanged(int val)
     {
         _tmpPing.SetText(val.ToString());
     }
 
-    private void OnPlayerDied()
+    private void OnPlayerHealthChanged(int val)
     {
-        _tmpNickname.color = Color.gray;
-        _tmpKills.color = Color.gray;
-        _tmpPing.color = Color.gray;
+        if (val <= 0)
+        {
+            _tmpNickname.color = Color.gray;
+            _tmpKills.color = Color.gray;
+            _tmpPing.color = Color.gray;
+        }
     }
 }
 

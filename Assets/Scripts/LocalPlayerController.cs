@@ -108,6 +108,7 @@ public class LocalPlayerController : NetworkBehaviour
         {
             SetThirdPersonVisible(false);
 
+            gameObject.layer = LayerMask.NameToLayer("Player");
             //if (!isServer) // if the local client is not the host
             //    _thirdPersonRoot.gameObject.SetActive(false);
 
@@ -116,14 +117,15 @@ public class LocalPlayerController : NetworkBehaviour
             Camera.main.transform.localRotation = Quaternion.identity;
             _firstPersonArm.SetParent(Camera.main.transform);
 
-            GameState.Instance.onGameStarted += () => { InputManager.Instance.SetInputMode(EInputMode.GameOnly); };
+            LocalGame.Instance.onClientGameStarted += () => { InputManager.Instance.SetInputMode(EInputMode.GameOnly); };
 
             // Crouch callback
             _charaMovement.OnStartCrouching += () => { UpdateCrouchCoroutine(1); };
             _charaMovement.OnEndCrouching += () => { UpdateCrouchCoroutine(-1); };
 
+            UI_GameHUD.Instance.RegisterPlayerTransform(transform);
             // Die callback
-            _playerState.onDied += Die;
+            // _playerState.onDied += Die;
         }        
         else
         {
@@ -138,7 +140,7 @@ public class LocalPlayerController : NetworkBehaviour
         UpdateShowStatisticsInput();
         if (!_playerState.IsAlive) return;
         UpdateMovementInput();
-        if (!GameState.HasBegun) return;
+        if (GameState.Instance.Stage != GameStage.PLAYING) return;
         if (InputManager.Instance.InputMode == EInputMode.UIOnly) return;
         UpdateRotationInput();
         UpdateCrouchingInput();
@@ -152,15 +154,14 @@ public class LocalPlayerController : NetworkBehaviour
 
         CheckInteractable();
         // test for sync
-        if (Input.GetKeyDown(KeyCode.Alpha0))
-        {
-            GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
-        }
+        //if (Input.GetKeyDown(KeyCode.Alpha0))
+        //{
+        //    GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
+        //}
         // test
         if (Input.GetKeyDown(KeyCode.K))
         {
-            // MyNetworkManager.singleton.ServerChangeScene("MainMap");
-            _playerState.ApplyDamage(100, _playerState, null, DamageType.POISON);
+            _playerState.CmdSetSelfDamage(50, DamageType.POISON);
         }
     }
 
@@ -178,7 +179,7 @@ public class LocalPlayerController : NetworkBehaviour
     {
         float axisH = 0.0f;
         float axisV = 0.0f;
-        if (GameState.HasBegun && InputManager.Instance.InputMode != EInputMode.UIOnly)
+        if (GameState.Instance.Stage == GameStage.PLAYING && InputManager.Instance.InputMode != EInputMode.UIOnly)
         {
             axisH = Input.GetAxis("Horizontal");
             axisV = Input.GetAxis("Vertical");
@@ -334,11 +335,11 @@ public class LocalPlayerController : NetworkBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            UI_GameHUD.SetStatisticsShown(true);
+            UI_GameHUD.Instance.SetStatisticsShown(true);
         }
         else if (Input.GetKeyUp(KeyCode.Tab))
         {
-            UI_GameHUD.SetStatisticsShown(false);
+            UI_GameHUD.Instance.SetStatisticsShown(false);
         }
     }
     #endregion

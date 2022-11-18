@@ -78,7 +78,7 @@ public class CharacterMovement : NetworkBehaviour
     {
         if (!isLocalPlayer) return;
         if (!_playerState.IsAlive) return;
-        if (!GameState.HasBegun) return;
+        if (GameState.Instance.Stage != GameStage.PLAYING) return;
 
         CheckOnGround();
 
