@@ -27,18 +27,13 @@ public class LobbyController : MonoBehaviour
     [SerializeField] private RectTransform _pnlPlayerList;
     [SerializeField] private Button _btnStartReady;
 
-    //public GameObject playerListViewContent;
-    //public GameObject playerListItemPrefab;
-    //public GameObject LocalPlayerObject;
-
     private CSteamID _lobbyId;
     private bool _isOwner;
     private Dictionary<CSteamID, UI_Lobby_PlayerItem> _players = new Dictionary<CSteamID, UI_Lobby_PlayerItem>();
-    // private List<PlayerListItem> PlayerListItems = new List<PlayerListItem>();
-    // public PlayerObjectController localPlayerController;
     private bool _isReady = false;
 
     private GameObject _playerItem;
+
     private void Start()
     {
         if (null == SteamLobby.Instance)
@@ -53,41 +48,36 @@ public class LobbyController : MonoBehaviour
         _isReady = _isOwner;
         if (_isOwner)
         {
-            SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keyGameStart, "0");
+            SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keyGameStarted, "0");
             SteamMatchmaking.SetLobbyJoinable(_lobbyId, true);
         }
 
+        SteamMatchmaking.SetLobbyMemberData(_lobbyId, SteamLobby.keyReady, _isReady ? "1" : "0");
 
-        SteamMatchmaking.SetLobbyMemberData(
-            _lobbyId,
-            SteamLobby.keyReady,
-            _isReady ? "1" : "0");
-        // Debug.Log(SteamMatchmaking.GetNumLobbyMembers(_lobbyId));
         UpdateLobbyName();
         InitLobbyId();
         InitPlayerList();
         InitStartReadyButton();
 
         //// UpdateButton();
-        Callback<LobbyDataUpdate_t>.Create(OnLobbyDataUpdate);
-        Callback<LobbyChatUpdate_t>.Create(OnLobbyChatUpdate);
+        SteamLobby.Instance.onLobbyChatUpdate += OnLobbyChatUpdate;
+        SteamLobby.Instance.onLobbyDataUpdate += OnLobbyDataUpdate;
+
+    }
+
+    private void OnDisable()
+    {
+        Debug.Log("on lobby controller disable");
+        if (SteamLobby.Instance)
+        {
+            SteamLobby.Instance.onLobbyChatUpdate -= OnLobbyChatUpdate;
+            SteamLobby.Instance.onLobbyDataUpdate -= OnLobbyDataUpdate;
+        }
     }
 
     private void OnLobbyDataUpdate(LobbyDataUpdate_t callback)
     {
         Debug.Log("On lobby data update");
-        //_isOwner = SteamMatchmaking.GetLobbyOwner(_lobbyId) == SteamUser.GetSteamID();
-        //if (_isOwner)
-        //{
-        //    _isReady = true;
-
-        //    SteamMatchmaking.SetLobbyMemberData(
-        //        _lobbyId,
-        //        SteamLobby.keyReady,
-        //        "1");
-
-        //    InitStartReadyButton();
-        //}
 
         if (callback.m_ulSteamIDLobby == callback.m_ulSteamIDMember) // Lobby data changed
         {
@@ -123,25 +113,6 @@ public class LobbyController : MonoBehaviour
                 break;
         }
     }
-
-    //public Button startGameButton;
-    //public TMP_Text readyButtonText;
-
-
-    //private MyNetworkManager manager;
-
-    //private MyNetworkManager Manager
-    //{
-    //    get
-    //    {
-    //        if (manager != null)
-    //        {
-    //            return manager;
-    //        }
-    //        return manager = MyNetworkManager.singleton as MyNetworkManager;
-    //    }
-
-    //}
 
     public void UpdateLobbyName()
     {
@@ -212,10 +183,6 @@ public class LobbyController : MonoBehaviour
         return true;
     }
 
-    public void StartGame(string sceneName)
-    {
-        // localPlayerController.CanStartGame(sceneName);
-    }
     private void InitStartReadyButton()
     {
         _btnStartReady.GetComponentInChildren<TextMeshProUGUI>().SetText(_isOwner ? "Start" : "Ready");
@@ -224,7 +191,7 @@ public class LobbyController : MonoBehaviour
 
     public void StartOrReady()
     {
-        if (SteamMatchmaking.GetLobbyData(_lobbyId, SteamLobby.keyGameStart) != "0")
+        if (SteamMatchmaking.GetLobbyData(_lobbyId, SteamLobby.keyGameStarted) != "0")
         {
             MasterUIManager.AddPopupHint("The game has already begun.");
             return;
@@ -236,13 +203,10 @@ public class LobbyController : MonoBehaviour
             {
                 Debug.Log("Can start game!");
                 SteamMatchmaking.SetLobbyJoinable(_lobbyId, false);
-                SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keyGameStart, "1");
+                SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keyGameStarted, "1");
 
-                SteamLobby.SceneToLoad = "MainMap";
-                // SteamLobby.SceneToLoad = "SampleScene";
-                SteamMatchmaking.SetLobbyData(_lobbyId, SteamLobby.keySceneToLoad, SteamLobby.SceneToLoad);
-                MyNetworkManager.singleton.ServerChangeScene(SteamLobby.SceneToLoad);                
-                // SceneManager.LoadScene(SteamLobby.SceneToLoad);
+                // SteamLobby.SceneToLoad = "MainMap";
+                MyNetworkManager.singleton.StartGame();
             }
         }
         else

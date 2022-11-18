@@ -9,6 +9,7 @@ using UnityEngine.UI;
 public class UI_GameHUD : MonoBehaviour
 {
     private static UI_GameHUD instance;
+    public static UI_GameHUD Instance => instance;
     private void Awake()
     {
         instance = this;
@@ -17,25 +18,24 @@ public class UI_GameHUD : MonoBehaviour
     {        
         ClearInteractionHint();
         SetScopeActive(false);
-        // SetUIEnabled(false);
     }
 
     [Header("Countdown")]
     [SerializeField] private TextMeshProUGUI _tmpBeginplayCountdown;
     [SerializeField] private TextMeshProUGUI _tmpZoneCountdown;
-    public static void RefreshJoinedPlayerNum(int num, int max)
+    public void UpdateConnectedPlayerNum(int num, int max)
     {
-        instance._tmpBeginplayCountdown.SetText($"Waiting for other players...{num}/{max}");
+        _tmpBeginplayCountdown.SetText($"Waiting for other players...{num}/{max}");
     }
     public static void SetCountdown(string str)
     {
         instance._tmpBeginplayCountdown.SetText(str);
     }
-    public static void SetZoneCountdown(int val, bool urgent = false)
+    public void SetZoneCountdown(int val, bool urgent = false)
     {
-        instance._tmpZoneCountdown.color = urgent ? Color.red : Color.white;
-        if (null != instance._cZoneCountdown) instance.StopCoroutine(instance._cZoneCountdown);
-        instance._cZoneCountdown = instance.StartCoroutine(instance.ZoneCountdown(val));
+        _tmpZoneCountdown.color = urgent ? Color.red : Color.white;
+        if (null != _cZoneCountdown) StopCoroutine(_cZoneCountdown);
+        _cZoneCountdown = StartCoroutine(ZoneCountdown(val));
     }
     Coroutine _cZoneCountdown;
     private IEnumerator ZoneCountdown(int val)
@@ -67,11 +67,11 @@ public class UI_GameHUD : MonoBehaviour
         instance._objScope.SetActive(active);
     }
     [Header("Opposite Name")]
-    [SerializeField] private TextMeshProUGUI _tmpOppositeName;
+    [SerializeField] private TextMeshProUGUI _tmpAimedPlayerName;
     [SerializeField] private LayerMask _aimLayerMask;
-    public static void SetOppositeName(string nickname)
+    public void SetAimedPlayerName(string nickname)
     {
-        instance._tmpOppositeName.SetText(nickname);
+        instance._tmpAimedPlayerName.SetText(nickname);
     }
 
     [Header("Inventory")]
@@ -133,7 +133,7 @@ public class UI_GameHUD : MonoBehaviour
     [SerializeField] private Color _hpColor2 = Color.yellow;
     [SerializeField] private Color _hpColor3 = Color.red;
     [SerializeField] private TextMeshProUGUI _tmpArmor;
-    public static void SetHealth(int val)
+    public void SetHealth(int val)
     {
         instance._tmpHealth.SetText(val.ToString());
         instance._tmpHealth.color = val >= 50 ? instance._hpColor1 :
@@ -144,6 +144,17 @@ public class UI_GameHUD : MonoBehaviour
         instance._tmpArmor.SetText(val.ToString());
     }
 
+    [Header("Damaged")]
+    [SerializeField] private UI_Game_Damaged _damaged;
+    public void RegisterPlayerTransform(Transform player)
+    {
+        _damaged.PlayerTransform = player;
+    }
+    public void SetDamaged(Transform instigator)
+    {
+        _damaged.SetDamaged(instigator);
+    }
+
     [Header("Kill Message")]
     [SerializeField] private UI_Game_KillMsg _killMsg;
     public static void AddKillMessage(string killerName, string objectName, Sprite icon, DamageType type)
@@ -152,18 +163,25 @@ public class UI_GameHUD : MonoBehaviour
     }
     [Header("Statistics")]
     [SerializeField] private UI_Panel_Statistics _statistics;
-    public static void SetStatisticsShown(bool shown)
+    public void SetStatisticsShown(bool shown)
     {
-        instance._statistics.SetShown(shown);
+        _statistics.SetShown(shown);
     }
-    public static void AddPlayerToStatistics(PlayerState ps)
+    public void AddPlayerToStatistics(uint netId)
     {
-        instance._statistics.AddPlayerSlot(ps);
+        _statistics.AddPlayerSlot(netId);
     }
-    public static void RemovePlayerFromStatistics(PlayerState ps)
+    public void RemovePlayerFromStatistics(uint netId)
     {
-        instance._statistics.RemovePlayerSlot(ps);
+        _statistics.RemovePlayerSlot(netId);
     }
+    //private void InitPlayerStatistics()
+    //{
+    //    foreach (var item in GameState.Instance._playerNetIds)
+    //    {
+    //        AddPlayerToStatistics(item);
+    //    }
+    //}
 
     [Header("Round End")]
     [SerializeField] private GameObject _winnerPanel;
@@ -191,6 +209,7 @@ public class UI_GameHUD : MonoBehaviour
     }
     public void OnClickReturnToLobby()
     {
+        // SteamLobby.SceneToLoad = "Lobby";
         MyNetworkManager.singleton.ServerChangeScene("Lobby");
     }
     public static void SetUIEnabled(bool enabled)
@@ -203,25 +222,23 @@ public class UI_GameHUD : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (GameState.Instance == null || !GameState.HasBegun) return;
-        PlayerState ps;
-        RaycastHit[] hits = Physics.RaycastAll(Camera.main.transform.position,
+        if (null == GameState.Instance) return;
+        if (GameState.Instance.Stage != GameStage.PLAYING) return;
+
+        // check aiming player
+        if (Physics.Raycast(Camera.main.transform.position,
             Camera.main.transform.forward,
+            out RaycastHit hit,
             150,
-            _aimLayerMask);
-        foreach (RaycastHit hit in hits)
+            _aimLayerMask))
         {
-            if ((ps = hit.transform.GetComponentInParent<PlayerState>()) != null)
+            Debug.Log(hit.transform.gameObject.name);
+            if (hit.transform.TryGetComponent(out PlayerState ps))
             {
-                if (ps.isLocalPlayer) continue;
-                else
-                {
-                    SetOppositeName(ps.Nickname);
-                    return;
-                }
-            }
-            else break;
-        }        
-        SetOppositeName("");
+                SetAimedPlayerName(ps.Nickname);
+                return;
+            }            
+        }
+        SetAimedPlayerName("");
     }
 }

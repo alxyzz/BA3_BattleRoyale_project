@@ -5,6 +5,7 @@ using Mirror;
 using System.Collections.Generic;
 using Steamworks;
 using System.Collections;
+using UnityEditor;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/components/network-manager
@@ -156,7 +157,7 @@ public class MyNetworkManager : NetworkManager
     /// <param name="sceneName">The name of the new scene.</param>
     public override void OnServerSceneChanged(string sceneName) 
     {
-        Debug.Log("Server Scene Changed to " + sceneName);
+        Debug.Log($"Server scene changed to {sceneName}");
     }
 
     /// <summary>
@@ -173,19 +174,14 @@ public class MyNetworkManager : NetworkManager
     /// <para>Scene changes can cause player objects to be destroyed. The default implementation of OnClientSceneChanged in the NetworkManager is to add a player object for the connection if no player object exists.</para>
     /// </summary>
     public override void OnClientSceneChanged()
-    {
-
+    {        
         base.OnClientSceneChanged();
-
-        if (SceneManager.GetActiveScene().name == SteamMatchmaking.GetLobbyData(SteamLobby.Instance.CurrentLobbyId, SteamLobby.keySceneToLoad))
+        if (SceneManager.GetActiveScene().path == gameScene)
         {
+            Debug.Log($"Client scene changed to {SceneManager.GetActiveScene().name}");
             NetworkClient.AddPlayer();
-            Debug.Log(SceneManager.GetActiveScene().name);
         }
-        
-        //NetworkClient.AddPlayer();
     }
-
     #endregion
 
     #region Server System Callbacks
@@ -322,11 +318,11 @@ public class MyNetworkManager : NetworkManager
 
     //[SerializeField] private PlayerObjectController GamePlayerPrefab;
     //public List<PlayerObjectController> GamePlayers { get; } = new List<PlayerObjectController>();
+    [Header("Game")]
+    [Scene] public string gameScene = "";
 
-    
-
-    public void StartGame(string sceneName)
+    public void StartGame()
     {
-        ServerChangeScene(sceneName);
+        ServerChangeScene(gameScene);
     }
 }
