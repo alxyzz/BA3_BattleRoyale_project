@@ -50,9 +50,10 @@ MonoBehaviour:
   syncMode: 0
   syncInterval: 0.1
   _minRadius: 30
-  _changingRange: {x: 50, y: 60}
+  _changingRange: {x: 30, y: 50}
   _pauseTimeRange: {x: 20, y: 30}
-  _shrinkingDuration: 30
+  _initialWaitingTime: 10
+  _shrinkingDuration: 45
   _baseDamage: 1
   _addedDamage: 10
 --- !u!114 &5516603785508093582
@@ -70,7 +71,7 @@ MonoBehaviour:
   sceneId: 0
   serverOnly: 0
   visible: 0
-  m_AssetId: 
+  m_AssetId: 18ad2389ac85e4048939c2cd41781bc5
   hasSpawned: 0
 --- !u!114 &5516603785508093583
 MonoBehaviour:
