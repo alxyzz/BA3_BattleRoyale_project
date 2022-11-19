@@ -272,6 +272,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
         RaycastHit[] hits = new RaycastHit[5];
         foreach (Vector3 dir in directions)
         {
+            // Debug.DrawRay(origin, dir, Color.red, 20);
             int hitInfoLen = Physics.RaycastNonAlloc(origin, dir, hits, wpn.MaxRange, _shootingLayer);
             Array.Sort(hits, 0, hitInfoLen, new RaycastHitComparer());
             float attenuation = 1.0f;

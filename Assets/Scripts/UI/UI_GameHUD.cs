@@ -232,7 +232,7 @@ public class UI_GameHUD : MonoBehaviour
             150,
             _aimLayerMask))
         {
-            Debug.Log(hit.transform.gameObject.name);
+            // Debug.Log(hit.transform.gameObject.name);
             if (hit.transform.TryGetComponent(out PlayerState ps))
             {
                 SetAimedPlayerName(ps.Nickname);

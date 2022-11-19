@@ -74,18 +74,17 @@ public class WeaponInHand : MonoBehaviour
     {
         get
         {
-            return Quaternion.Euler(
-            _identity.Data.RecoilVertical.Evaluate(RecoilValue) * -1 * _playerCtrl.CharaMovementComp.RecoilMultiplier,
-            _identity.Data.RecoilHorizontal.Evaluate(RecoilValue) * _playerCtrl.CharaMovementComp.RecoilMultiplier,
-            0f);
+            return Quaternion.AngleAxis(_identity.Data.RecoilHorizontal.Evaluate(RecoilValue) * _playerCtrl.CharaMovementComp.RecoilMultiplier,
+                Vector3.up) * Quaternion.AngleAxis(_identity.Data.RecoilVertical.Evaluate(RecoilValue) * -1 * _playerCtrl.CharaMovementComp.RecoilMultiplier,
+                _playerCtrl.FirstPersonRight);
         }
     }
     protected Quaternion GetClampedRecoilRot(float pitchClamp)
     {
         return Quaternion.Euler(
-                    Mathf.Clamp(_identity.Data.RecoilVertical.Evaluate(RecoilValue) * -1 * _playerCtrl.CharaMovementComp.RecoilMultiplier, pitchClamp, 0),
-                    _identity.Data.RecoilHorizontal.Evaluate(RecoilValue) * _playerCtrl.CharaMovementComp.RecoilMultiplier,
-                    0f);
+            Mathf.Clamp(_identity.Data.RecoilVertical.Evaluate(RecoilValue) * -1 * _playerCtrl.CharaMovementComp.RecoilMultiplier, pitchClamp, 0),
+            _identity.Data.RecoilHorizontal.Evaluate(RecoilValue) * _playerCtrl.CharaMovementComp.RecoilMultiplier,
+            0.0f);
     }
     protected virtual float FireSpreadRadius => GetFireSpreadRadius(_identity.Data.FireSpread);
     protected float GetFireSpreadRadius(float baseSpread)

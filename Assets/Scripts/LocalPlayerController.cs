@@ -78,6 +78,7 @@ public class LocalPlayerController : NetworkBehaviour
     // [SerializeField] private AudioSource _soundPlayer;
 
     public Vector3 FirstPersonForward => _firstPersonRoot.forward;
+    public Vector3 FirstPersonRight => _firstPersonRoot.right;
     [SerializeField] private Transform _firstPersonArm;
     [SerializeField] private SkinnedMeshRenderer _fpSMR;
     [SerializeField] private SkinnedMeshRenderer _tpSMR;
