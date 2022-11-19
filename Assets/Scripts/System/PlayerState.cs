@@ -405,6 +405,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
         {
             if (instigator != null) instigator.AddKill();
             // dead
+            gameObject.layer = LayerMask.NameToLayer("Dead");
             RpcDie();
             GameState.Instance.PlayerDied(netId);
 
@@ -513,6 +514,7 @@ public class PlayerState : NetworkBehaviour, IDamageable
     public void RpcDie()
     {
         Debug.Log("Rpc Die");
+        gameObject.layer = LayerMask.NameToLayer("Dead");
         if (_curWpnObj) Destroy(_curWpnObj);
         if (isLocalPlayer)
         {
