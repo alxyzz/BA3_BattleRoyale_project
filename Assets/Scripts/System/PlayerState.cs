@@ -52,9 +52,6 @@ public class PlayerState : NetworkBehaviour, IDamageable
         if (isLocalPlayer)
         {
             Debug.Log("On player state start.");
-            _steamIdUlong = SteamUser.GetSteamID().m_SteamID;
-            SteamId = SteamUser.GetSteamID();
-            _nickname = SteamFriends.GetPersonaName();
             CmdStartLocalPlayer(SteamUser.GetSteamID().m_SteamID);
             onHealthChanged += (val) => UI_GameHUD.Instance.SetHealth(val);
             _cUpdatePing = StartCoroutine(UpdatePing());
@@ -85,14 +82,17 @@ public class PlayerState : NetworkBehaviour, IDamageable
     // ----------------------------
     [SyncVar(hook = nameof(OnSteamIdUlongChanged))] private ulong _steamIdUlong;
     public CSteamID SteamId { get; private set; }
+    public Action<string> onNicknameChanged;
     private void OnSteamIdUlongChanged(ulong oldVal, ulong newVal)
     {
         SteamId = new CSteamID(newVal);
-        _nickname = SteamFriends.GetFriendPersonaName(SteamId);
     }
-    [SyncVar] private string _nickname;
+    [SyncVar(hook = nameof(OnNicknameChanged))] private string _nickname;
     public string Nickname => _nickname;
-
+    private void OnNicknameChanged(string oldStr, string newStr)
+    {
+        onNicknameChanged?.Invoke(newStr);
+    }
 
     [SyncVar(hook = nameof(OnBodyColourChanged))][HideInInspector] public Color bodyColour;
 

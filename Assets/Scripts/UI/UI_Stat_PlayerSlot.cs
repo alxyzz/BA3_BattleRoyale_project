@@ -29,12 +29,17 @@ public class UI_Stat_PlayerSlot : MonoBehaviour
             _tmpPing.SetText(_playerState.Ping.ToString());
             _tmpKills.SetText(_playerState.Kills.ToString());
 
+            _playerState.onNicknameChanged += OnPlayerNicknameChanged;
             _playerState.onPingChanged += OnPlayerPingChanged;
             _playerState.onKillsChanged += OnPlayerKillsChanged;
             _playerState.onHealthChanged += OnPlayerHealthChanged;
         }
     }
 
+    private void OnPlayerNicknameChanged(string str)
+    {
+        _tmpNickname.SetText(str);
+    }
     private void OnPlayerKillsChanged(int val)
     {
         _tmpKills.SetText(val.ToString());
