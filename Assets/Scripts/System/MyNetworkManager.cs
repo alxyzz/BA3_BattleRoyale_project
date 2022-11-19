@@ -122,7 +122,7 @@ public class MyNetworkManager : NetworkManager
         loadingSceneAsync = SceneManager.LoadSceneAsync(newSceneName);
         StartCoroutine(LoadMySceneAsync(newSceneName));
 
-        startPositionIndex = 0;
+        startPositionIndex = UnityEngine.Random.Range(0, numPlayerSpawnPoint);
         startPositions.Clear();
     }
 
@@ -320,7 +320,7 @@ public class MyNetworkManager : NetworkManager
     //public List<PlayerObjectController> GamePlayers { get; } = new List<PlayerObjectController>();
     [Header("Game")]
     [Scene] public string gameScene = "";
-
+    public int numPlayerSpawnPoint;
     public void StartGame()
     {
         ServerChangeScene(gameScene);
