@@ -159,10 +159,10 @@ public class LocalPlayerController : NetworkBehaviour
         //    GetComponent<PlayerState>().CmdSetBodyColour(Color.red);
         //}
         // test
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            _playerState.CmdSetSelfDamage(50, DamageType.POISON);
-        }
+        //if (Input.GetKeyDown(KeyCode.K))
+        //{
+        //    _playerState.CmdSetSelfDamage(50, DamageType.POISON);
+        //}
     }
 
     private void UpdateRotationInput()
